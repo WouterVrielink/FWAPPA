@@ -1,0 +1,15 @@
+oclussie populatie in fig 1 -> memory probleem and computation met sorting
+    Do you throw away points after m?
+      Yes.
+    This has effect on z_min, prevents computational "waste" through sorting and memory problems
+
+Survivor selection: (μ, λ) or (μ + λ)
+    Deze term gebruiken in paper?
+
+random geeft [0,1) -> probleem?
+
+Voor de fitnessfunction met z_max enzo; wat doe je als z_max == z_min? Want dan deel je door 0.
+    Uniforme verdeling maken voor de runners
+
+Moet de r in eq. 2 en eq. 3 dezelfde zijn?
+  Nee
