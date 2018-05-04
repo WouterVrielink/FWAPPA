@@ -21,3 +21,23 @@ class Environment(object):
 
     def calculate_fitness(self, pos):
         return self.function(pos)
+
+    def limit_bounds(self, distances):
+        for i in range(self.d):
+            lo_bound = self.bounds[i][0]
+            hi_bound = self.bounds[i][1]
+
+            distances[i] = lo_bound if distances[i] < lo_bound else hi_bound if distances[i] > hi_bound else distances[i]
+
+        return distances
+
+    def wrap_bounds(self, pos):
+        for i in range(self.d):
+            lo_bound = self.bounds[i][0]
+            hi_bound = self.bounds[i][1]
+
+            # DAAN
+            if not (lo_bound <= pos[i] <= hi_bound):
+                pos[i] = lo_bound + abs(pos[i]) % (hi_bound - lo_bound)
+
+        return pos

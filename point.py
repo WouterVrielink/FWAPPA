@@ -11,4 +11,5 @@ class Point(object):
     def fitness(self):
         if not self.fitness_calculated:
             self._fitness = self.env.calculate_fitness(self.pos)
+            self.fitness_calculated = True
         return self._fitness

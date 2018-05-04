@@ -1,5 +1,6 @@
 import math
 import random
+import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -10,8 +11,6 @@ class PlantPropagation(object):
     """docstring for PlantPropagation."""
 
     def __init__(self, N, d, bounds, bench_function, max_iter, max_runners, m):
-        self.bench_function = bench_function
-
         self.N = N
         self.bench_function = bench_function
 
@@ -37,20 +36,11 @@ class PlantPropagation(object):
     def z_max(self):
         return self.population[:self.m][-1].fitness
 
-    def correct_bounds(self, distances):
-        for i in range(self.env.d):
-            lo_bound = self.env.bounds[i][0]
-            hi_bound = self.env.bounds[i][1]
-
-            distances[i] = lo_bound if distances[i] < lo_bound else hi_bound if distances[i] > hi_bound else distances[i]
-
-        return distances
-
     def get_runner(self, pos, corr_fitness):
         distances = np.array([2 * (1 - corr_fitness) * (random.random() - 0.5) for _ in range(self.env.d)])
 
         scaled_dist = [(np.diff(self.env.bounds[i]) * distances[i])[0] for i in range(self.env.d)]
-        runner = Point(self.correct_bounds(pos + scaled_dist), self.env)
+        runner = Point(self.env.limit_bounds(pos + scaled_dist), self.env)
 
         return runner
 
@@ -80,7 +70,7 @@ class PlantPropagation(object):
 
             # plt.scatter([plant.pos[0] for plant in self.population], [plant.pos[1] for plant in self.population], c='c')
 
-            # Ascending!
+            # Ascending sort + selection
             self.population = sorted(self.population, key=lambda plant: plant.fitness)[:self.m]
 
             # best.append(self.z_min)
@@ -92,13 +82,9 @@ class PlantPropagation(object):
             #     plt.scatter([plant.pos[0] for plant in self.population], [plant.pos[1] for plant in self.population])
             #     plt.show()
 
-            all_runners = []
+            # Create runners (children) for all plants
             for plant in self.population[:self.m]:
-                runners = self.get_runners(plant)
-
-                all_runners += runners
-
-            self.population += all_runners
+                self.population += self.get_runners(plant)
 
             self.iteration += 1
         #
