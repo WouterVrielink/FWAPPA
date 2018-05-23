@@ -2,7 +2,7 @@ from ppa import PlantPropagation
 import benchmarks
 import time
 
-N = 30
+N = 2
 start = time.clock()
 for i in range(1, 101):
     loop = time.clock()

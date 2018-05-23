@@ -40,6 +40,8 @@ class PlantPropagation(object):
     def get_runner(self, pos, corr_fitness):
         distances = np.array([2 * (1 - corr_fitness) * (random.random() - 0.5) for _ in range(self.env.d)])
 
+        print(pos, corr_fitness, distances)
+
         scaled_dist = [(np.diff(self.env.bounds[i]) * distances[i])[0] for i in range(self.env.d)]
         runner = Point(self.env.limit_bounds(pos + scaled_dist), self.env)
 
@@ -49,7 +51,7 @@ class PlantPropagation(object):
         runners = []
 
         if self.z_max - self.z_min > 0:
-            corr_fitness = math.tanh(self.convert_fitness(plant.fitness) - 0.5) + 0.5
+            corr_fitness = 0.5 * (math.tanh(4 * self.convert_fitness(plant.fitness) - 2) + 1)
         else:
             corr_fitness = 0.5
 
