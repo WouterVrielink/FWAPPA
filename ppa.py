@@ -1,6 +1,5 @@
 import math
 import random
-import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -24,6 +23,8 @@ class PlantPropagation(object):
         self.m = m
 
         self.max_runners = max_runners
+
+        self.generation_statistics = []
 
     def convert_fitness(self, fitness):
         return (self.z_max - fitness) / (self.z_max - self.z_min)
@@ -62,18 +63,20 @@ class PlantPropagation(object):
 
         return runners
 
+    def get_generation_statistics(self):
+        return list(range(0, self.iteration)), self.generation_statistics
+
     def start(self):
         best = []
         fitness_avg = []
 
         while self.iteration < self.max_iterations:
-
             # plt.scatter([plant.pos[0] for plant in self.population], [plant.pos[1] for plant in self.population], c='c')
 
             # Ascending sort + selection
             self.population = sorted(self.population, key=lambda plant: plant.fitness)[:self.m]
 
-            # best.append(self.z_min)
+            self.generation_statistics.append(self.z_min)
             # fitness_avg.append(sum([plant.fitness for plant in self.population]) / len(self.population))
 
             # if not self.iteration % 1:
@@ -95,3 +98,6 @@ class PlantPropagation(object):
         # plt.ylabel('Benchmark score')
         # plt.legend()
         # plt.show()
+
+        # print(self.population[0].pos)
+        # print(self.population[0].fitness)

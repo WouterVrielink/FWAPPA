@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from point import Point
 
@@ -10,17 +11,30 @@ class Environment(object):
 
         self.function = function
 
+        self.evaluation_statistics = []
+        self.evaluation_statistics_best = []
+        self.evaluation_number = 0
+        self.cur_best = math.inf
+
     def get_random_population(self, N):
         return [self.get_random_point() for _ in range(N)]
 
     def get_random_point(self):
-
         pos = [np.random.uniform(self.bounds[i][0], self.bounds[i][1]) for i in range(self.d)]
 
         return Point(np.array(pos), self)
 
     def calculate_fitness(self, pos):
-        return self.function(pos)
+        self.evaluation_number += 1
+        fitness = self.function(pos)
+        self.evaluation_statistics.append(fitness)
+
+        if fitness < self.cur_best:
+            self.cur_best = fitness
+
+        self.evaluation_statistics_best.append(self.cur_best)
+
+        return fitness
 
     def limit_bounds(self, distances):
         for i in range(self.d):
@@ -36,8 +50,13 @@ class Environment(object):
             lo_bound = self.bounds[i][0]
             hi_bound = self.bounds[i][1]
 
-            # DAAN
             if not (lo_bound <= pos[i] <= hi_bound):
                 pos[i] = lo_bound + abs(pos[i]) % (hi_bound - lo_bound)
 
         return pos
+
+    def get_evaluation_statistics(self):
+        return list(range(1, self.evaluation_number + 1)), self.evaluation_statistics
+
+    def get_evaluation_statistics_best(self):
+        return list(range(1, self.evaluation_number + 1)), self.evaluation_statistics_best

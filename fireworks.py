@@ -1,9 +1,15 @@
+import math
 import random
+import numpy as np
+import matplotlib.pyplot as plt
+
+from environment import Environment
+from point import Point
 
 class Fireworks(object):
     """docstring for Fireworks."""
 
-    def __init__(self, N, d, bounds, bench_function, max_iter):
+    def __init__(self, N, d, bounds, bench_function, max_iter, m, m_roof, a, b, max_amp):
         self.N = N
         self.bench_function = bench_function
 
@@ -25,6 +31,7 @@ class Fireworks(object):
         # Spark maximum amplitude
         self.max_amp = max_amp
 
+        self.generation_statistics = []
 
     @property
     def y_min(self):
@@ -35,14 +42,9 @@ class Fireworks(object):
         return self.population[-1].fitness
 
     def get_sparks_amount(self, firework):
+        eps = np.finfo(float).eps
         total_diff = sum([self.y_max - firework.fitness for firework in self.population])
-
-        # DAAN gekke notatie
-        if total_diff > 0:
-            sparks_amount = self.m * (self.y_max - firework.fitness) / total_diff
-        else:
-            sparks_amount = self.m / self.N
-            # sparks_amount = 0
+        sparks_amount = self.m * ((self.y_max - firework.fitness) + eps) / (total_diff + eps)
 
         if sparks_amount < self.am:
             sparks_amount = round(self.am)
@@ -54,20 +56,15 @@ class Fireworks(object):
         return sparks_amount
 
     def get_sparks_amplitude(self, firework):
+        eps = np.finfo(float).eps
         total_diff = sum([firework.fitness - self.y_min for firework in self.population])
-
-        # DAAN Amp == 0??
-        if total_diff > 0:
-            sparks_amplitude = max_amp * (firework.fitness - self.y_min) / total_diff
-        else:
-            sparks_amplitude = 0
+        sparks_amplitude = self.max_amp * ((firework.fitness - self.y_min) + eps) / (total_diff + eps)
 
         return sparks_amplitude
 
-
-
     def get_spark(self, pos, amplitude):
-        z = round(self.env.d * random.random)
+        # ARNING in paper staat round, maar in code doen ze effectief ceil
+        z = math.ceil(self.env.d * random.random())
 
         h = (random.random() - 0.5) * 2 * amplitude
 
@@ -75,14 +72,15 @@ class Fireworks(object):
         new_pos = [x for x in pos]
 
         # randomly select z dimensions of origin
-        for random in random.sample(range(self.env.d), z):
+        for dim in random.sample(range(self.env.d), z):
             # and mutate
-            new_pos[random] += h
+            new_pos[dim] += h
 
         return Point(self.env.wrap_bounds(new_pos), self.env)
 
     def get_spark_gaussian(self, pos):
-        z = round(self.env.d * random.random)
+        # WARNING in paper staat round, maar in code doen ze effectief ceil
+        z = math.ceil(self.env.d * random.random())
 
         g = random.gauss(1.0, 1.0)
 
@@ -90,47 +88,64 @@ class Fireworks(object):
         new_pos = [x for x in pos]
 
         # randomly select z dimensions of origin
-        for random in random.sample(range(self.env.d), z):
+        for dim in random.sample(range(self.env.d), z):
             # and mutate
-            new_pos[random] *= g
+            new_pos[dim] *= g
 
-        return Point(self.correct_bounds(new_pos), self.env)
+        return Point(self.env.wrap_bounds(new_pos), self.env)
 
     def get_sparks(self):
         sparks = []
 
         # Normal sparks
         for firework in self.population:
-            sparks_amount = get_sparks_amount(firework)
-            sparks_amplitude = get_sparks_amplitude(firework)
+            sparks_amount = self.get_sparks_amount(firework)
+            sparks_amplitude = self.get_sparks_amplitude(firework)
 
-            for _ in range(sparks_amount):
-                sparks.append(get_spark(firework.pos, sparks_amplitude))
+            for _ in range(int(sparks_amount)):
+                sparks.append(self.get_spark(firework.pos, sparks_amplitude))
 
-        # Gaussian sparks DAAN random selection of sample?
-        for firework in random.sample(self.population, self.m_roof):
-            sparks.append(get_spark_gaussian(firework.poss))
+        # Gaussian sparks random selection NOT SAMPLE
+        for firework in np.random.choice(self.population, self.m_roof):
+            sparks.append(self.get_spark_gaussian(firework.pos))
 
         return sparks
 
+    def get_generation_statistics(self):
+        return list(range(self.iteration)), self.generation_statistics
+
     def start(self):
-        best = []
-        fitness_avg = []
-
         while self.iteration < self.max_iterations:
-            # Selection
-            if len(self.population) > self.n:
-                # DAAN selection TODO
-                # new_pop = [self.population[0]]
-
-                # TODO NOG FOUT
-                self.population = sorted(self.population, key=lambda firework: firework.fitness)
-                self.population = self.population[:self.N]
+            # plt.scatter([firework.pos[0] for firework in self.population], [firework.pos[1] for firework in self.population], c='c')
 
             # Sort the population Ascending
             self.population = sorted(self.population, key=lambda firework: firework.fitness)
 
+            self.generation_statistics.append(self.y_min)
+
+            # Selection
+            if len(self.population) > self.N:
+                new_pop = [self.population[0]]
+
+                dist = [firework.euclidean_distance_population(self.population) for firework in self.population[1:]]
+                probabilities = dist / sum(dist)
+
+                new_pop += list(np.random.choice(self.population[1:], self.N - 1, p=probabilities))
+
+                self.population = new_pop
+
+            # if not self.iteration % 1:
+            #     plt.xlim(self.env.bounds[0])
+            #     plt.ylim(self.env.bounds[1])
+            #     plt.scatter([firework.pos[0] for firework in self.population], [firework.pos[1] for firework in self.population], c='r')
+            #     plt.show()
+
             # Create sparks (children)
-            self.population += get_sparks()
+            self.population += self.get_sparks()
 
             self.iteration += 1
+
+        # self.population = sorted(self.population, key=lambda firework: firework.fitness)
+        #
+        # print(self.population[0].pos)
+        # print(self.population[0].fitness)

@@ -13,3 +13,9 @@ class Point(object):
             self._fitness = self.env.calculate_fitness(self.pos)
             self.fitness_calculated = True
         return self._fitness
+
+    def euclidean_distance(self, point):
+        return sum([abs(self.pos[i] - point.pos[i]) for i in range(self.env.d)])
+
+    def euclidean_distance_population(self, population):
+        return sum([self.euclidean_distance(point) for point in population])

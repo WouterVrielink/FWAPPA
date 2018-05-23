@@ -108,6 +108,11 @@ def rastigrin(params):
 
     return 10 * len(params) + sum([param ** 2 - 10 * math.cos(2 * math.pi * param) for param in params])
 
+def rastigrin_add(params):
+    assert check_dims(params, -6.12, 4.12)
+
+    return 10 * len(params) + sum([(param + 1) ** 2 - 10 * math.cos(2 * math.pi * (param + 1)) for param in params])
+
 def schwefel(params):
     assert check_dims(params, -500, 500)
 
@@ -135,6 +140,18 @@ def sphere(params):
 
     for param in params:
         total += param ** 2
+
+    return total
+    # return np.sum(np.array([param ** 2 for param in params]))
+
+
+@jit(nopython=True)
+def sphere_add(params):
+    # assert check_dims(params, -100, 100)
+    total = 0
+
+    for param in params:
+        total += (param + 10) ** 2
 
     return total
     # return np.sum(np.array([param ** 2 for param in params]))
