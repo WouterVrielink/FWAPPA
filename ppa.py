@@ -9,7 +9,7 @@ from point import Point
 class PlantPropagation(object):
     """docstring for PlantPropagation."""
 
-    def __init__(self, N, d, bounds, bench_function, max_iter, max_runners, m):
+    def __init__(self, N, d, bounds, bench_function, max_iter, max_runners, m, tanh_mod=1):
         self.N = N
         self.bench_function = bench_function
 
@@ -25,6 +25,7 @@ class PlantPropagation(object):
         self.max_runners = max_runners
 
         self.generation_statistics = []
+        self.tanh_mod = tanh_mod
 
     def convert_fitness(self, fitness):
         return (self.z_max - fitness) / (self.z_max - self.z_min)
@@ -49,7 +50,7 @@ class PlantPropagation(object):
         runners = []
 
         if self.z_max - self.z_min > 0:
-            corr_fitness = 0.5 * (math.tanh(4 * self.convert_fitness(plant.fitness) - 2) + 1)
+            corr_fitness = 0.5 * (math.tanh(4 * self.tanh_mod * self.convert_fitness(plant.fitness) - 2 * self.tanh_mod) + 1)
             # corr_fitness = 0.5 * (math.tanh(16 * self.convert_fitness(plant.fitness) - 8) + 1)
         else:
             corr_fitness = 0.5
