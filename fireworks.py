@@ -9,16 +9,15 @@ from point import Point
 class Fireworks(object):
     """docstring for Fireworks."""
 
-    def __init__(self, N, d, bounds, bench_function, max_iter, m, m_roof, a, b, max_amp):
+    def __init__(self, bench_function, bounds, max_evaluations, N, m, m_roof, a, b, max_amp):
         self.N = N
-        self.bench_function = bench_function
 
-        self.env = Environment(d, bounds, bench_function)
+        self.env = Environment(bounds, bench_function)
 
         self.population = self.env.get_random_population(N)
 
         self.iteration = 0
-        self.max_iterations = max_iter
+        self.max_evaluations = max_evaluations
 
         # Spark control
         self.m = m
@@ -31,7 +30,17 @@ class Fireworks(object):
         # Spark maximum amplitude
         self.max_amp = max_amp
 
-        self.generation_statistics = []
+    def __repr__(self):
+        return type(self).__name__ + f'(N={self.N}, \
+                d={self.env.d}, \
+                bounds={self.env.bounds}, \
+                bench_function={self.env.bench_function}, \
+                max_iter={self.max_iterations}, \
+                m={self.m}, \
+                m_roof={self.m_roof}, \
+                a={self.am}, \
+                b={self.bm}, \
+                max_amp={self.max_amp})'
 
     @property
     def y_min(self):
@@ -111,17 +120,12 @@ class Fireworks(object):
 
         return sparks
 
-    def get_generation_statistics(self):
-        return list(range(self.iteration)), self.generation_statistics
-
     def start(self):
-        while self.iteration < self.max_iterations:
+        while self.env.evaluation_number < self.max_evaluations:
             # plt.scatter([firework.pos[0] for firework in self.population], [firework.pos[1] for firework in self.population], c='c')
 
             # Sort the population Ascending
             self.population = sorted(self.population, key=lambda firework: firework.fitness)
-
-            self.generation_statistics.append(self.y_min)
 
             # Selection
             if len(self.population) > self.N:
@@ -144,6 +148,7 @@ class Fireworks(object):
             self.population += self.get_sparks()
 
             self.iteration += 1
+            self.env.generation_number += 1
 
         # self.population = sorted(self.population, key=lambda firework: firework.fitness)
         #

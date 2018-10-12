@@ -9,23 +9,30 @@ from point import Point
 class PlantPropagation(object):
     """docstring for PlantPropagation."""
 
-    def __init__(self, N, d, bounds, bench_function, max_iter, max_runners, m, tanh_mod=1):
+    def __init__(self, bench_function, bounds, max_evaluations, N, max_runners, m, tanh_mod=1):
         self.N = N
-        self.bench_function = bench_function
 
-        self.env = Environment(d, bounds, bench_function)
+        self.env = Environment(bounds, bench_function)
 
         self.population = self.env.get_random_population(N)
 
         self.iteration = 0
-        self.max_iterations = max_iter
+        self.max_evaluations = max_evaluations
 
         self.m = m
 
         self.max_runners = max_runners
 
-        self.generation_statistics = []
         self.tanh_mod = tanh_mod
+
+    def __repr__(self):
+        return type(self).__name__ + f'(N={self.N},' + \
+                f'bounds={self.env.bounds},' + \
+                f'bench_function={self.env.function.__name__},' + \
+                f'max_iter={self.max_evaluations},' + \
+                f'max_runners={self.max_runners},' + \
+                f'm={self.m},' + \
+                f'tanh_mod={self.tanh_mod})'
 
     def convert_fitness(self, fitness):
         return (self.z_max - fitness) / (self.z_max - self.z_min)
@@ -65,20 +72,16 @@ class PlantPropagation(object):
 
         return runners
 
-    def get_generation_statistics(self):
-        return list(range(0, self.iteration)), self.generation_statistics
-
     def start(self):
         best = []
         fitness_avg = []
 
-        while self.iteration < self.max_iterations:
+        while self.env.evaluation_number < self.max_evaluations:
             # plt.scatter([plant.pos[0] for plant in self.population], [plant.pos[1] for plant in self.population], c='c')
 
             # Ascending sort + selection
             self.population = sorted(self.population, key=lambda plant: plant.fitness)[:self.m]
 
-            self.generation_statistics.append(self.z_min)
             # fitness_avg.append(sum([plant.fitness for plant in self.population]) / len(self.population))
 
             # if not self.iteration % 1:
@@ -92,6 +95,8 @@ class PlantPropagation(object):
                 self.population += self.get_runners(plant)
 
             self.iteration += 1
+            self.env.generation_number += 1
+
         #
         # plt.title('N: {} N_max: {} m: {} bench_function: {} dimensions: {}'.format(self.N, self.max_runners, self.m, self.env.function.__name__, self.env.d))
         # plt.plot(range(self.max_iterations), best, label='best')

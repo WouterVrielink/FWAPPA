@@ -4,8 +4,8 @@ from point import Point
 
 class Environment(object):
     """docstring for Environment."""
-    def __init__(self, d, bounds, function):
-        self.d = d
+    def __init__(self, bounds, function):
+        self.d = len(bounds)
 
         self.bounds = bounds
 
@@ -13,6 +13,9 @@ class Environment(object):
 
         self.evaluation_statistics = []
         self.evaluation_statistics_best = []
+        self.generation_statistics = []
+
+        self.generation_number = 0
         self.evaluation_number = 0
         self.cur_best = math.inf
 
@@ -33,6 +36,7 @@ class Environment(object):
             self.cur_best = fitness
 
         self.evaluation_statistics_best.append(self.cur_best)
+        self.generation_statistics.append(self.generation_number)
 
         return fitness
 
@@ -60,3 +64,6 @@ class Environment(object):
 
     def get_evaluation_statistics_best(self):
         return list(range(1, self.evaluation_number + 1)), self.evaluation_statistics_best
+
+    def get_generation_statistics(self):
+        return list(range(1, self.evaluation_number + 1)), self.generation_statistics
