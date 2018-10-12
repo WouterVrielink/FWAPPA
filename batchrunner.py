@@ -41,9 +41,3 @@ if __name__ == "__main__":
     do_run(PlantPropagation, benchmarks.sphere, [(-100, 100) for _ in range(dims)], evaluations, 10)
 
     do_run(Fireworks, benchmarks.sphere, [(-100, 100) for _ in range(dims)], evaluations, 10)
-
-    # TODO
-    # helper_tools.save_to_csv()
-
-    # TODO voor fireworks alles fixen
-    # dims eruit slopen
