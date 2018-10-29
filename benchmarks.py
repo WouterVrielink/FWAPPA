@@ -126,7 +126,7 @@ def elipse(params):
 def cigar(params):
     assert check_dims(params, -100, 100)
 
-    return params[0] ** 2 + sum([10000 * param ** 2] for param in params[1:])
+    return params[0] ** 2 + sum([10000 * param ** 2 for param in params[1:]])
 
 def tablet(params):
     assert check_dims(params, -100, 100)
