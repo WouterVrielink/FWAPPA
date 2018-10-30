@@ -14,7 +14,7 @@ def load_config(file):
 
 
 def do_run(alg, bench_function, bounds, max_evaluations, reps, verbose=1, version="DEFAULT"):
-    config = load_config(f'config_{alg.__name__}.json')[version]
+    config = load_config(f'configs/config_{alg.__name__}.json')[version]
 
     if verbose:
         print("--------------------------------------")

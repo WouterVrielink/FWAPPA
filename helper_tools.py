@@ -81,7 +81,7 @@ if __name__ == '__main__':
     from fireworks import Fireworks
     import benchmarks
 
-    dimension = 5
+    dimension = 10
     plot_avg(PlantPropagation, benchmarks.sphere, "DEFAULT", dimension)
     plot_avg(Fireworks, benchmarks.sphere, "DEFAULT", dimension)
 
