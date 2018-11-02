@@ -81,10 +81,11 @@ if __name__ == '__main__':
     from fireworks import Fireworks
     import benchmarks
 
-    dimension = 2
+    dimension = 100
     # for dimension in range(2, 10):
-    plot_avg(PlantPropagation, benchmarks.sphere, "DEFAULT", dimension)
-    plot_avg(Fireworks, benchmarks.sphere, "DEFAULT", dimension)
+    plot_avg(PlantPropagation, benchmarks.ackley, "DEFAULT", dimension)
+    plot_avg(Fireworks, benchmarks.ackley, "DEFAULT", dimension)
+    # plot_avg(Fireworks, benchmarks.sphere, "DEFAULT", dimension)
 
     plt.xlabel('Evaluation')
     plt.ylabel('Benchmark score')
