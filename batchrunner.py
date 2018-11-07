@@ -59,8 +59,8 @@ if __name__ == "__main__":
     for dims in range(2, 101):
         for alg in (PlantPropagation, Fireworks):
             do_run(alg, benchmarks.sphere, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
-
-            do_run(alg, benchmarks.sphere_add, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
+            
+            # do_run(alg, benchmarks.sphere_add, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
 
             do_run(alg, benchmarks.tablet, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
 

@@ -43,7 +43,7 @@ def goldstein_price(params):
     assert -2 <= params[1] <= 2, \
         "x_2 is out of bounds with value: {}".format(params[1])
 
-    first_term = 1 + ((params[0] + params[1] + 1) ** 2) * (19 - 14 * params[0] + 6 * params[0] * params[1] + 3 * params[1] ** 2)
+    first_term = 1 + ((params[0] + params[1] + 1) ** 2) * (19 - 14 * params[0] + 3 * params[0] ** 2 - 14 * params[1] + 6 * params[0] * params[1] + 3 * params[1] ** 2)
     second_term = 30 + ((2 * params[0] - 3 * params[1]) ** 2) * (18 - 32 * params[0] + 12 * params[0] ** 2 + 48 * params[1] - 36 * params[0] * params[1] + 27 * params[1] ** 2)
 
     return first_term * second_term
