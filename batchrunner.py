@@ -50,9 +50,10 @@ if __name__ == "__main__":
         for bench_function, domain in benchmarks.two_dim_bench_functions().items():
             do_run(alg, bench_function, domain, evaluations, repetitions)
 
-            bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+            for value in (0.1, 1, 10, 100, 1000):
+                bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain, value=value)
 
-            do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
+                do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
 
         # Centered easom...
         bench_function, domain = benchmarks.apply_add(benchmarks.easom, [(-100, 100), (-100, 100)], value=-math.pi, name='_center')
