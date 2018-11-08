@@ -6,6 +6,8 @@ import benchmarks
 from timeit import default_timer as timer
 import json
 import os
+import math
+
 
 def load_config(file):
     with open(file, 'r') as f:
@@ -38,40 +40,31 @@ def do_run(alg, bench_function, bounds, max_evaluations, reps, verbose=1, versio
         helper_tools.save_to_csv(alg_instance, filename_stats)
         helper_tools.save_time(end - start, alg_instance.env.evaluation_number, repetition, filename_time)
 
+
 if __name__ == "__main__":
     evaluations = 10000
     repetitions = 10
 
     # 2-dimensional
-    dims = 2
     for alg in (PlantPropagation, Fireworks):
-        do_run(alg, benchmarks.easom, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
+        for bench_function, domain in benchmarks.two_dim_bench_functions().items():
+            do_run(alg, bench_function, domain, evaluations, repetitions)
 
-        do_run(alg, benchmarks.branin, [(-5, 15) for _ in range(dims)], evaluations, repetitions)
+            bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
 
-        do_run(alg, benchmarks.goldstein_price, [(-2, 2) for _ in range(dims)], evaluations, repetitions)
+            do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
 
-        do_run(alg, benchmarks.martin_gaddy, [(-20, 20) for _ in range(dims)], evaluations, repetitions)
-
-        do_run(alg, benchmarks.six_hump_camel, [(-3, 3), (-2, 2)], evaluations, repetitions)
+        # Centered easom...
+        bench_function, domain = benchmarks.apply_add(benchmarks.easom, [(-100, 100), (-100, 100)], value=-math.pi, name='_center')
+        do_run(alg, bench_function, domain, evaluations, repetitions)
 
     # N-dimensional
     for dims in range(2, 101):
         for alg in (PlantPropagation, Fireworks):
-            do_run(alg, benchmarks.sphere, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
-            
-            # do_run(alg, benchmarks.sphere_add, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
+            for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+                domain = [domain for _ in range(dims)]
+                do_run(alg, bench_function, domain, evaluations, repetitions)
 
-            do_run(alg, benchmarks.tablet, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
+                bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
 
-            do_run(alg, benchmarks.cigar, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
-
-            do_run(alg, benchmarks.elipse, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
-
-            do_run(alg, benchmarks.schwefel, [(-500, 500) for _ in range(dims)], evaluations, repetitions)
-
-            do_run(alg, benchmarks.rastigrin, [(-5.12, 5.12) for _ in range(dims)], evaluations, repetitions)
-
-            do_run(alg, benchmarks.ackley, [(-100, 100) for _ in range(dims)], evaluations, repetitions)
-
-            do_run(alg, benchmarks.rosenbrock, [(-5, 10) for _ in range(dims)], evaluations, repetitions)
+                do_run(alg, bench_function_add, domain_add, evaluations, repetitions)

@@ -173,11 +173,11 @@ if __name__ == '__main__':
 
     print("Plotting 2d benchmarks...")
 
-    plot_versus(benchmarks.easom, 2, correction=-1)
+    # plot_versus(benchmarks.easom, 2, correction=-1)
     plot_versus(benchmarks.branin, 2, correction=0.397887)
-    plot_versus(benchmarks.goldstein_price, 2, correction=3)
-    plot_versus(benchmarks.martin_gaddy, 2)
-    plot_versus(benchmarks.six_hump_camel, 2, correction=-1.0316)
+    # plot_versus(benchmarks.goldstein_price, 2, correction=3)
+    # plot_versus(benchmarks.martin_gaddy, 2)
+    # plot_versus(benchmarks.six_hump_camel, 2, correction=-1.0316)
 
     # for dims in range(2, 101):
     #     print(f'Plotting Nd benchmarks {dims}d/100d...')
