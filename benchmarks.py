@@ -27,7 +27,25 @@ def n_dim_bench_functions():
     }
 
 
+def two_dim_non_centered_bench_functions():
+    return {
+        easom: [(math.pi, math.pi)],
+        branin: [(-math.pi, 12.275), (math.pi, 2.275), (9.42478, 2.475)],
+        goldstein_price: [(0, -1)],
+        six_hump_camel: [(0.0898, -0.7126), (-0.0898, 0.7126)]
+    }
+
+
+def n_dim_non_centered_bench_functions():
+    return {
+        schwefel: [(420.9687)],
+        rosenbrock: [(1)]
+    }
+
+
 def param_shift(params, value):
+    if isinstance(value, tuple):
+        return [param + value for param, value in zip(value, params)]
     return [param + value for param in params]
 
 
@@ -39,6 +57,8 @@ def apply_add(bench_function, domain, value=10, name='_add'):
 
     new_fun.__name__ = bench_function.__name__ + name + (str(value) if name == '_add' else '')
 
+    if isinstance(value, tuple):
+        return new_fun, [(min - value, max - value) for (min, max), value in zip(domain, value)]
     return new_fun, [(min - value, max - value) for (min, max) in domain]
 
 

@@ -55,9 +55,11 @@ if __name__ == "__main__":
 
                 do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
 
-        # Centered easom...
-        bench_function, domain = benchmarks.apply_add(benchmarks.easom, [(-100, 100), (-100, 100)], value=-math.pi, name='_center')
-        do_run(alg, bench_function, domain, evaluations, repetitions)
+        # Centered functions...
+        for bench_function, center in benchmarks.two_dim_non_centered_bench_functions().items():
+            domain = benchmarks.two_dim_bench_functions()[bench_function]
+            bench_function, domain = benchmarks.apply_add(bench_function, domain, value=center[0], name='_center')
+            do_run(alg, bench_function, domain, evaluations, repetitions)
 
     # N-dimensional
     for dims in range(2, 101):
@@ -69,3 +71,10 @@ if __name__ == "__main__":
                 bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
 
                 do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
+
+            # Centered functions...
+            for bench_function, center in benchmarks.n_dim_non_centered_bench_functions().items():
+                domain = benchmarks.n_dim_bench_functions()[bench_function]
+                domain = [domain for _ in range(dims)]
+                bench_function, domain = benchmarks.apply_add(bench_function, domain, value=center[0], name='_center')
+                do_run(alg, bench_function, domain, evaluations, repetitions)
