@@ -4,12 +4,15 @@ from numba import jit
 
 
 def two_dim_bench_functions():
+    """
+    First term are bounds, second term is the correction required to set the benchmark to 0.
+    """
     return {
-        easom: [(-100, 100), (-100, 100)],
-        branin: [(-5, 15), (-5, 15)],
-        goldstein_price: [(-2, 2), (-2, 2)],
-        martin_gaddy: [(-20, 20), (-20, 20)],
-        six_hump_camel: [(-3, 3), (-2, 2)]
+        easom: [((-100, 100), (-100, 100)), -1],
+        branin: [((-5, 15), (-5, 15)), 0.39788735772973816],
+        goldstein_price: [((-2, 2), (-2, 2)), 3],
+        martin_gaddy: [((-20, 20), (-20, 20)), 0],
+        six_hump_camel: [((-3, 3), (-2, 2)), -1.031628453489877]
     }
 
 
@@ -33,7 +36,7 @@ def two_dim_non_centered_bench_functions():
         branin: [(-math.pi, 12.275), (math.pi, 2.275), (9.42478, 2.475)],
         goldstein_price: [(0, -1)],
         six_hump_camel: [(0.0898, -0.7126), (-0.0898, 0.7126)]
-    }
+    } # MARTIN GADDY
 
 
 def n_dim_non_centered_bench_functions():
@@ -45,7 +48,7 @@ def n_dim_non_centered_bench_functions():
 
 def param_shift(params, value):
     if isinstance(value, tuple):
-        return [param + value for param, value in zip(value, params)]
+        return [param + value for param, value in zip(params, value)]
     return [param + value for param in params]
 
 
@@ -118,7 +121,7 @@ def rastigrin(params):
 
 
 def schwefel(params):
-    return 418.9823 * len(params) - sum([param * math.sin(math.sqrt(abs(param))) for param in params])
+    return 418.9829 * len(params) - sum([param * math.sin(math.sqrt(abs(param))) for param in params])
 
 
 def elipse(params):

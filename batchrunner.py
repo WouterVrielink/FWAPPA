@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     # 2-dimensional
     for alg in (PlantPropagation, Fireworks):
-        for bench_function, domain in benchmarks.two_dim_bench_functions().items():
+        for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
             do_run(alg, bench_function, domain, evaluations, repetitions)
 
             for value in (0.1, 1, 10, 100, 1000):
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
         # Centered functions...
         for bench_function, center in benchmarks.two_dim_non_centered_bench_functions().items():
-            domain = benchmarks.two_dim_bench_functions()[bench_function]
+            domain, _ = benchmarks.two_dim_bench_functions()[bench_function]
             bench_function, domain = benchmarks.apply_add(bench_function, domain, value=center[0], name='_center')
             do_run(alg, bench_function, domain, evaluations, repetitions)
 

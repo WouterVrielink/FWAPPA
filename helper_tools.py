@@ -87,11 +87,11 @@ def plot_avg(alg, bench_function, version, dim, correction=0):
 
     x = range(1, 10001)
 
-    plt.semilogy(x, mean_best_y, label=f'{alg.__name__} N={N}')
+    plt.semilogy(x, mean_best_y, label=f'{alg.__name__} (N={N})')
     plt.fill_between(x, np.percentile(all_best_y, 5, axis=1), np.percentile(all_best_y, 95, axis=1), alpha=0.2)
 
 
-def plot_end(alg, bench_function, version):
+def plot_end_all_dims(alg, bench_function, version):
     avgs = []
     err_lo = []
     err_hi = []
@@ -111,7 +111,35 @@ def plot_end(alg, bench_function, version):
         err_lo.append(np.percentile(all_best_y, 5))
         err_hi.append(np.percentile(all_best_y, 95))
 
-    plt.errorbar(range(2, 101), avgs, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__} N={N}', capsize=2)
+    plt.errorbar(range(2, 101), avgs, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__} (N={N})', capsize=2)
+
+
+def plot_end_all_shifts(alg, bench_function, shifts, version, correction=0):
+    avgs = []
+    err_lo = []
+    err_hi = []
+
+    for value in shifts:
+        if value != 0:
+            bench_function_add, _ = benchmarks.apply_add(bench_function, [(0, 0), (0, 0)], value=value)
+        else:
+            bench_function_add = bench_function
+
+        path = build_path(alg, bench_function_add, version, 2)
+
+        file_list = os.listdir(path)
+
+        data = get_data(path, file_list, "curbest")
+
+        N = len(file_list) - 1
+
+        all_best_y = np.matrix(list(it.zip_longest(*data, fillvalue=np.nan))[9999]) - correction
+        avgs.append(np.nanmean(all_best_y))
+
+        err_lo.append(np.percentile(all_best_y, 5))
+        err_hi.append(np.percentile(all_best_y, 95))
+
+    plt.errorbar(shifts, avgs, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__} (N={N})', capsize=2)
 
 
 def get_plot_path(bench_function):
@@ -147,8 +175,8 @@ def plot_versus_dims(bench_function, version="DEFAULT"):
     # Clear any existing figure
     plt.clf()
 
-    plot_end(PlantPropagation, bench_function, version)
-    plot_end(Fireworks, bench_function, version)
+    plot_end_all_dims(PlantPropagation, bench_function, version)
+    plot_end_all_dims(Fireworks, bench_function, version)
 
     ax = plt.gca()
     ax.set_yscale("log", nonposy='clip')
@@ -161,45 +189,91 @@ def plot_versus_dims(bench_function, version="DEFAULT"):
     plt.savefig(f'{path}/{filename}', bbox_inches='tight')
 
 
+def plot_versus_shift(bench_function, shifts, version="DEFAULT", correction=0):
+    path = get_plot_path(bench_function)
+    filename = f'shifts.png'
+
+    check_folder(path)
+
+    # Clear any existing figure
+    plt.clf()
+
+    plot_end_all_shifts(PlantPropagation, bench_function, shifts, version, correction=correction)
+    plot_end_all_shifts(Fireworks, bench_function, shifts, version, correction=correction)
+
+    ax = plt.gca()
+    ax.set_yscale('log', nonposy='clip')
+    ax.set_xscale('symlog', linthreshx=0.1)
+
+    plt.xlabel('Shift')
+    plt.ylabel('Benchmark score')
+    plt.title('Mean of results after 10000 evaluations')
+    plt.legend()
+
+    plt.savefig(f'{path}/{filename}', bbox_inches='tight')
+
+
+def plot_compare_center_single(bench_function, bench_function_center, version="DEFAULT", correction=0):
+    path = get_plot_path(bench_function)
+    filename = f'centered.png'
+
+    check_folder(path)
+
+    # Clear any existing figure
+    plt.clf()
+
+    plot_avg(PlantPropagation, bench_function, version, 2, correction=correction)
+    plot_avg(PlantPropagation, bench_function_center, version, 2, correction=correction)
+
+    plot_avg(Fireworks, bench_function, version, 2, correction=correction)
+    plot_avg(Fireworks, bench_function_center, version, 2, correction=correction)
+
+    ax = plt.gca()
+    ax.set_yscale('symlog', nonposy='clip', linthreshy=0.0000001)
+
+    plt.xlabel('Shift')
+    plt.ylabel('Benchmark score')
+    plt.title('Mean of results after 10000 evaluations')
+    plt.legend()
+
+    plt.savefig(f'{path}/{filename}', bbox_inches='tight')
+
+
 if __name__ == '__main__':
     from ppa import PlantPropagation
     from fireworks import Fireworks
     import benchmarks
 
-    # Branin: 0.397887
-    # Easom: -1
-    # Goldstein_price: 3
-    # six_hump_camel: -1.0316
-
     print("Plotting 2d benchmarks...")
 
-    # plot_versus(benchmarks.easom, 2, correction=-1)
-    plot_versus(benchmarks.branin, 2, correction=0.397887)
-    # plot_versus(benchmarks.goldstein_price, 2, correction=3)
-    # plot_versus(benchmarks.martin_gaddy, 2)
-    # plot_versus(benchmarks.six_hump_camel, 2, correction=-1.0316)
+    for bench_function in benchmarks.two_dim_non_centered_bench_functions():
+        bounds, correction = benchmarks.two_dim_bench_functions()[bench_function]
+        bench_function_center, _ = benchmarks.apply_add(bench_function, bounds, name='_center')
+
+        plot_compare_center_single(bench_function, bench_function_center, correction=correction)
+
+    for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
+        plot_versus(bench_function, 2, correction=correction)
+
+        plot_versus_shift(bench_function, (0, 0.1, 1, 10, 100, 1000), correction=correction)
 
     # for dims in range(2, 101):
     #     print(f'Plotting Nd benchmarks {dims}d/100d...')
     #
-    #     plot_versus(benchmarks.sphere, dims)
-    #     plot_versus(benchmarks.tablet, dims)
-    #     plot_versus(benchmarks.cigar, dims)
-    #     plot_versus(benchmarks.elipse, dims)
-    #     plot_versus(benchmarks.schwefel, dims)
-    #     plot_versus(benchmarks.rastigrin, dims)
-    #     plot_versus(benchmarks.sphere, dims)
-    #     plot_versus(benchmarks.ackley, dims)
-    #     plot_versus(benchmarks.rosenbrock, dims)
-
-    # print("Plotting Nd benchmarks...")
+    #     for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+    #         plot_versus(bench_function, dims)
     #
-    # plot_versus_dims(benchmarks.sphere)
-    # plot_versus_dims(benchmarks.tablet)
-    # plot_versus_dims(benchmarks.cigar)
-    # plot_versus_dims(benchmarks.elipse)
-    # plot_versus_dims(benchmarks.schwefel)
-    # plot_versus_dims(benchmarks.rastigrin)
-    # plot_versus_dims(benchmarks.sphere)
-    # plot_versus_dims(benchmarks.ackley)
-    # plot_versus_dims(benchmarks.rosenbrock)
+    #         domain = [domain for _ in range(dims)]
+    #         bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+    #
+    #         plot_versus(bench_function_add, dims)
+    #
+    # print("Plotting Nd benchmark commparisons...")
+    #
+    # for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+    #     plot_versus_dims(bench_function)
+    #
+    #     domain = [domain for _ in range(dims)]
+    #     bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+    #
+    #     plot_versus_dims(bench_function_add)
