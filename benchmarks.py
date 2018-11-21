@@ -37,7 +37,7 @@ def two_dim_non_centered_bench_functions():
         goldstein_price: [(0, -1)],
         six_hump_camel: [(0.0898, -0.7126), (-0.0898, 0.7126)],
         martin_gaddy: [(5, 5)]
-    } # MARTIN GADDY
+    }
 
 
 def n_dim_non_centered_bench_functions():

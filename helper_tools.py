@@ -106,10 +106,13 @@ def plot_end_all_dims(alg, bench_function, version):
         N = len(file_list) - 1
 
         all_best_y = list(it.zip_longest(*data, fillvalue=np.nan))[9999]
-        avgs.append(np.nanmean(all_best_y))
+        avg = np.nanmean(all_best_y)
 
-        err_lo.append(np.percentile(all_best_y, 5))
-        err_hi.append(np.percentile(all_best_y, 95))
+        avgs.append(avg)
+
+        # We need the absolute errors
+        err_lo.append(avg - np.percentile(all_best_y, 5))
+        err_hi.append(np.percentile(all_best_y, 95) - avg)
 
     plt.errorbar(range(2, 101), avgs, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__} (N={N})', capsize=2)
 
@@ -134,10 +137,13 @@ def plot_end_all_shifts(alg, bench_function, shifts, version, correction=0):
         N = len(file_list) - 1
 
         all_best_y = np.matrix(list(it.zip_longest(*data, fillvalue=np.nan))[9999]) - correction
-        avgs.append(np.nanmean(all_best_y))
+        avg = np.nanmean(all_best_y)
 
-        err_lo.append(np.percentile(all_best_y, 5))
-        err_hi.append(np.percentile(all_best_y, 95))
+        avgs.append(avg)
+
+        # We need the absolute errors
+        err_lo.append(avg - np.percentile(all_best_y, 5))
+        err_hi.append(np.percentile(all_best_y, 95) - avg)
 
     plt.errorbar(shifts, avgs, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__} (N={N})', capsize=2)
 
@@ -246,34 +252,42 @@ if __name__ == '__main__':
 
     print("Plotting 2d benchmarks...")
 
+    # Comparison between non-centered function and the centered version
     for bench_function in benchmarks.two_dim_non_centered_bench_functions():
         bounds, correction = benchmarks.two_dim_bench_functions()[bench_function]
         bench_function_center, _ = benchmarks.apply_add(bench_function, bounds, name='_center')
 
         plot_compare_center_single(bench_function, bench_function_center, correction=correction)
 
+    # Comparison between fwa and ppa, and comparison for different shift sizes
     for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
         plot_versus(bench_function, 2, correction=correction)
 
         plot_versus_shift(bench_function, (0, 0.1, 1, 10, 100, 1000), correction=correction)
 
-    # for dims in range(2, 101):
-    #     print(f'Plotting Nd benchmarks {dims}d/100d...')
-    #
-    #     for bench_function, domain in benchmarks.n_dim_bench_functions().items():
-    #         plot_versus(bench_function, dims)
-    #
-    #         domain = [domain for _ in range(dims)]
-    #         bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
-    #
-    #         plot_versus(bench_function_add, dims)
-    #
-    # print("Plotting Nd benchmark commparisons...")
-    #
-    # for bench_function, domain in benchmarks.n_dim_bench_functions().items():
-    #     plot_versus_dims(bench_function)
-    #
-    #     domain = [domain for _ in range(dims)]
-    #     bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
-    #
-    #     plot_versus_dims(bench_function_add)
+    # Comparisons between fwa and ppa for both unshifted and shifted benchmarks per dimension
+    for dims in range(2, 101):
+        print(f'Plotting Nd benchmarks {dims}d/100d...')
+
+        for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+            plot_versus(bench_function, dims)
+
+            domain = [domain for _ in range(dims)]
+            bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+
+            plot_versus(bench_function_add, dims)
+
+    print("Plotting Nd benchmark commparisons...")
+
+    # Comparisons over all dimensions for shifted and unshifted benchmarks
+    for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+        plot_versus_dims(bench_function)
+
+        domain = [domain for _ in range(100)]
+        bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+
+        plot_versus_dims(bench_function_add)
+
+    # TODO: Comparison of N-D shifted vs unshifted?
+    # - Use results at 10k evals of all dims
+    # - Seperate FWA and PPA so we only have 2 lines
