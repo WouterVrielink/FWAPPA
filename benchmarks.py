@@ -35,7 +35,8 @@ def two_dim_non_centered_bench_functions():
         easom: [(math.pi, math.pi)],
         branin: [(-math.pi, 12.275), (math.pi, 2.275), (9.42478, 2.475)],
         goldstein_price: [(0, -1)],
-        six_hump_camel: [(0.0898, -0.7126), (-0.0898, 0.7126)]
+        six_hump_camel: [(0.0898, -0.7126), (-0.0898, 0.7126)],
+        martin_gaddy: [(5, 5)]
     } # MARTIN GADDY
 
 
