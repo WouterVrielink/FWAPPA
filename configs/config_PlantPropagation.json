@@ -1,11 +1,9 @@
 {
   "DEFAULT": {
-    "N": 30,
     "max_runners": 5,
     "m": 30
   },
   "TANH": {
-      "N": 30,
       "max_runners": 5,
       "m": 30,
       "tanh_mod": 2

@@ -117,6 +117,41 @@ def plot_end_all_dims(alg, bench_function, version):
     plt.errorbar(range(2, 101), avgs, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__} (N={N})', capsize=2)
 
 
+def plot_times(version="DEFAULT"):
+    fpath = 'plots/times/'
+    filename = f'times.png'
+
+    check_folder(fpath)
+
+    plt.clf()
+
+    for alg in (Fireworks, PlantPropagation):
+        avg = []
+        std = []
+        for dims in range(2, 101):
+            temp = []
+
+            for bench_function, _ in benchmarks.n_dim_bench_functions().items():
+                path = get_time_name(alg, bench_function, version, dims)
+                with open(path, mode='r') as file:
+                    reader = csv.DictReader(file)
+
+                    for row in reader:
+                        temp.append(float(row["Time"]))
+
+            avg.append(np.mean(temp))
+            std.append(np.std(temp))
+
+        plt.errorbar(range(2, 101), avg, yerr=[std, std], fmt='o', label=f'{alg.__name__}', capsize=2)
+
+    plt.xlabel('Dimension')
+    plt.ylabel('Time (in seconds)')
+    plt.title('Time to complete 10000 evaluations over all benchmarks')
+    plt.legend()
+
+    plt.savefig(f'{fpath}/{filename}', bbox_inches='tight')
+
+
 def plot_end_all_shifts(alg, bench_function, shifts, version, correction=0):
     avgs = []
     err_lo = []
@@ -161,8 +196,8 @@ def plot_versus(bench_function, dims, version="DEFAULT", correction=0):
     # Clear any existing figure
     plt.clf()
 
-    plot_avg(PlantPropagation, bench_function, version, dims, correction=correction)
     plot_avg(Fireworks, bench_function, version, dims, correction=correction)
+    plot_avg(PlantPropagation, bench_function, version, dims, correction=correction)
 
     plt.xlabel('Evaluation')
     plt.ylabel('Benchmark score')
@@ -181,8 +216,8 @@ def plot_versus_dims(bench_function, version="DEFAULT"):
     # Clear any existing figure
     plt.clf()
 
-    plot_end_all_dims(PlantPropagation, bench_function, version)
     plot_end_all_dims(Fireworks, bench_function, version)
+    plot_end_all_dims(PlantPropagation, bench_function, version)
 
     ax = plt.gca()
     ax.set_yscale("log", nonposy='clip')
@@ -204,8 +239,8 @@ def plot_versus_shift(bench_function, shifts, version="DEFAULT", correction=0):
     # Clear any existing figure
     plt.clf()
 
-    plot_end_all_shifts(PlantPropagation, bench_function, shifts, version, correction=correction)
     plot_end_all_shifts(Fireworks, bench_function, shifts, version, correction=correction)
+    plot_end_all_shifts(PlantPropagation, bench_function, shifts, version, correction=correction)
 
     ax = plt.gca()
     ax.set_yscale('log', nonposy='clip')
@@ -228,11 +263,11 @@ def plot_compare_center_single(bench_function, bench_function_center, version="D
     # Clear any existing figure
     plt.clf()
 
-    plot_avg(PlantPropagation, bench_function, version, 2, correction=correction)
-    plot_avg(PlantPropagation, bench_function_center, version, 2, correction=correction)
-
     plot_avg(Fireworks, bench_function, version, 2, correction=correction)
     plot_avg(Fireworks, bench_function_center, version, 2, correction=correction)
+
+    plot_avg(PlantPropagation, bench_function, version, 2, correction=correction)
+    plot_avg(PlantPropagation, bench_function_center, version, 2, correction=correction)
 
     ax = plt.gca()
     ax.set_yscale('symlog', nonposy='clip', linthreshy=0.0000001)
@@ -250,43 +285,45 @@ if __name__ == '__main__':
     from fireworks import Fireworks
     import benchmarks
 
-    print("Plotting 2d benchmarks...")
+    plot_times()
+
+    # print("Plotting 2d benchmarks...")
 
     # Comparison between non-centered function and the centered version
-    for bench_function in benchmarks.two_dim_non_centered_bench_functions():
-        bounds, correction = benchmarks.two_dim_bench_functions()[bench_function]
-        bench_function_center, _ = benchmarks.apply_add(bench_function, bounds, name='_center')
-
-        plot_compare_center_single(bench_function, bench_function_center, correction=correction)
-
-    # Comparison between fwa and ppa, and comparison for different shift sizes
-    for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
-        plot_versus(bench_function, 2, correction=correction)
-
-        plot_versus_shift(bench_function, (0, 0.1, 1, 10, 100, 1000), correction=correction)
-
-    # Comparisons between fwa and ppa for both unshifted and shifted benchmarks per dimension
-    for dims in range(2, 101):
-        print(f'Plotting Nd benchmarks {dims}d/100d...')
-
-        for bench_function, domain in benchmarks.n_dim_bench_functions().items():
-            plot_versus(bench_function, dims)
-
-            domain = [domain for _ in range(dims)]
-            bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
-
-            plot_versus(bench_function_add, dims)
-
-    print("Plotting Nd benchmark commparisons...")
-
-    # Comparisons over all dimensions for shifted and unshifted benchmarks
-    for bench_function, domain in benchmarks.n_dim_bench_functions().items():
-        plot_versus_dims(bench_function)
-
-        domain = [domain for _ in range(100)]
-        bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
-
-        plot_versus_dims(bench_function_add)
+    # for bench_function in benchmarks.two_dim_non_centered_bench_functions():
+    #     bounds, correction = benchmarks.two_dim_bench_functions()[bench_function]
+    #     bench_function_center, _ = benchmarks.apply_add(bench_function, bounds, name='_center')
+    #
+    #     plot_compare_center_single(bench_function, bench_function_center, correction=correction)
+    #
+    # # Comparison between fwa and ppa, and comparison for different shift sizes
+    # for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
+    #     plot_versus(bench_function, 2, correction=correction)
+    #
+    #     plot_versus_shift(bench_function, (0, 0.1, 1, 10, 100, 1000), correction=correction)
+    #
+    # # Comparisons between fwa and ppa for both unshifted and shifted benchmarks per dimension
+    # for dims in range(2, 101):
+    #     print(f'Plotting Nd benchmarks {dims}d/100d...')
+    #
+    #     for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+    #         plot_versus(bench_function, dims)
+    #
+    #         domain = [domain for _ in range(dims)]
+    #         bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+    #
+    #         plot_versus(bench_function_add, dims)
+    #
+    # print("Plotting Nd benchmark commparisons...")
+    #
+    # # Comparisons over all dimensions for shifted and unshifted benchmarks
+    # for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+    #     plot_versus_dims(bench_function)
+    #
+    #     domain = [domain for _ in range(100)]
+    #     bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+    #
+    #     plot_versus_dims(bench_function_add)
 
     # TODO: Comparison of N-D shifted vs unshifted?
     # - Use results at 10k evals of all dims

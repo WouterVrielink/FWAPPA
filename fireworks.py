@@ -19,7 +19,7 @@ class Fireworks(object):
         self.iteration = 0
         self.max_evaluations = max_evaluations
 
-        # Spark control
+        #  Max sparks and # Gaussian sparks
         self.m = m
         self.m_roof = m_roof
 
@@ -31,11 +31,11 @@ class Fireworks(object):
         self.max_amp = max_amp
 
     def __repr__(self):
-        return type(self).__name__ + f'(N={self.N}, \
-                d={self.env.d}, \
+        return type(self).__name__ + \
+                f'bench_function={self.env.bench_function}, \
                 bounds={self.env.bounds}, \
-                bench_function={self.env.bench_function}, \
-                max_iter={self.max_iterations}, \
+                max_evaluations={self.max_evaluations}, \
+                N={self.N}, \
                 m={self.m}, \
                 m_roof={self.m_roof}, \
                 a={self.am}, \
@@ -72,7 +72,7 @@ class Fireworks(object):
         return sparks_amplitude
 
     def get_spark(self, pos, amplitude):
-        # ARNING in paper staat round, maar in code doen ze effectief ceil
+        # WARNING in paper staat round, maar in code doen ze effectief ceil
         z = math.ceil(self.env.d * random.random())
 
         h = (random.random() - 0.5) * 2 * amplitude
@@ -122,8 +122,6 @@ class Fireworks(object):
 
     def start(self):
         while self.env.evaluation_number < self.max_evaluations:
-            # plt.scatter([firework.pos[0] for firework in self.population], [firework.pos[1] for firework in self.population], c='c')
-
             # Sort the population Ascending
             self.population = sorted(self.population, key=lambda firework: firework.fitness)
 
@@ -138,19 +136,8 @@ class Fireworks(object):
 
                 self.population = new_pop
 
-            # if not self.iteration % 1:
-            #     plt.xlim(self.env.bounds[0])
-            #     plt.ylim(self.env.bounds[1])
-            #     plt.scatter([firework.pos[0] for firework in self.population], [firework.pos[1] for firework in self.population], c='r')
-            #     plt.show()
-
             # Create sparks (children)
             self.population += self.get_sparks()
 
             self.iteration += 1
             self.env.generation_number += 1
-
-        # self.population = sorted(self.population, key=lambda firework: firework.fitness)
-        #
-        # print(self.population[0].pos)
-        # print(self.population[0].fitness)
