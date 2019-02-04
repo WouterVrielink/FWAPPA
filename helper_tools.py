@@ -4,6 +4,8 @@ import itertools as it
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as sc
+import powerlaw
+from scipy.optimize import curve_fit
 
 
 def build_path(alg, bench_function, version, dims):
@@ -79,6 +81,14 @@ def get_color(alg):
     return '#1f77b4' if alg == PlantPropagation else '#ff7f0e'
 
 
+def func_powerlaw(x, a, b, c):
+    return a * x**b + c
+
+
+def func_exp(x, a, b, c):
+    return a * np.exp(-b * x) + c
+
+
 def plot_avg(alg, bench_function, version, dim, correction=0):
     path = build_path(alg, bench_function, version, dim)
 
@@ -94,6 +104,28 @@ def plot_avg(alg, bench_function, version, dim, correction=0):
     x = range(1, 10001)
 
     color = get_color(alg)
+
+    # print(f'{alg.__name__}, {bench_function.__name__}')
+    # fit = powerlaw.Fit(np.percentile(all_best_y, 50, axis=1))
+    # print(fit.power_law.xmin)
+    # plt.semilogy(x, median_best_y, label=f'{alg.__name__}', color=color)
+    # fit.plot_pdf()
+    # plt.show()
+
+    # X = [i for i in x for _ in range(10)]
+    #
+    #
+    # # y = np.squeeze(all_best_y).ravel().tolist()[0]
+    # y = np.percentile(all_best_y, 50, axis=1)
+    # X = np.array(x, dtype=np.float)
+    #
+    # plt.clf()
+    # target_func = func_powerlaw
+    # popt, pcov = curve_fit(target_func, X, y, p0=(1000, 10, 0), bounds=(0, np.inf), maxfev=2000)
+    # print(popt)
+    # plt.loglog(X, target_func(X, *popt), '--')
+    # plt.loglog(X, y, 'ro')
+    # plt.show()
 
     plt.semilogy(x, median_best_y, label=f'{alg.__name__}', color=color)
     plt.fill_between(x, np.percentile(all_best_y, 0, axis=1), np.percentile(all_best_y, 25, axis=1), alpha=0.2, color=color, linewidth=0.0)
@@ -111,14 +143,20 @@ def wilcoxon_test(alg, bench_function, bench_function_add, version="DEFAULT", di
     data = get_data(path, file_list, "curbest")
     data_add = get_data(path_add, file_list_add, "curbest")
 
-    data = np.matrix(list(it.zip_longest(*data, fillvalue=np.nan)))[:10000]
-    data_add = np.matrix(list(it.zip_longest(*data_add, fillvalue=np.nan)))[:10000]
+    print(f'{alg.__name__}, {bench_function.__name__}')
 
-    print(np.mean(data, axis=1) - np.mean(data, axis=1))
+    data = np.matrix(list(it.zip_longest(*data, fillvalue=np.nan)))[9999]
+    data_add = np.matrix(list(it.zip_longest(*data_add, fillvalue=np.nan)))[9999]
 
-    data = np.squeeze(np.mean(data, axis=1)).ravel().tolist()[0]
-    data_add = np.squeeze(np.mean(data_add, axis=1)).ravel().tolist()[0]
+    data = np.squeeze(data).ravel().tolist()[0]
+    data_add = np.squeeze(data_add).ravel().tolist()[0]
 
+    # diff = np.abs(np.array(data) - np.array(data_add))
+    # plt.semilogy(range(10000), diff)
+    # plt.show()
+
+    print(sc.wilcoxon(data, data_add))
+    print(sc.ranksums(data, data_add))
     print(sc.mannwhitneyu(data, data_add))
 
 
@@ -328,12 +366,12 @@ if __name__ == '__main__':
     #
     #     plot_compare_center_single(bench_function, bench_function_center, correction=correction)
 
-    # # Comparison between fwa and ppa, centered and non-centered, and comparison for different shift sizes
-    # for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
-    #     plot_versus(bench_function, 2, correction=correction)
+    # Comparison between fwa and ppa, centered and non-centered, and comparison for different shift sizes
+    for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
+        plot_versus(bench_function, 2, correction=correction)
     #
         # bench_function_center, _ = benchmarks.apply_add(bench_function, domain, name='_center')
-
+        #
         # for alg in (Fireworks, PlantPropagation):
         #     wilcoxon_test(alg, bench_function, bench_function_center)
     #

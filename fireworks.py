@@ -1,10 +1,10 @@
 import math
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 
 from environment import Environment
 from point import Point
+
 
 class Fireworks(object):
     """docstring for Fireworks."""

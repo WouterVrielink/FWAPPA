@@ -112,7 +112,7 @@ def griewank(params):
     return 1 + first_term + second_term
 
 
-def rastigrin(params):
+def rastrigrin(params):
     assert check_dims(params, -5.12, 5.12)
 
     return 10 * len(params) + sum([param ** 2 - 10 * math.cos(2 * math.pi * param) for param in params])
