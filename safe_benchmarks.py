@@ -2,6 +2,14 @@ import math
 import numpy as np
 
 
+def official_name(name, ):
+    def decorator(func):
+        func.official_name = name
+        return func
+    return decorator
+    
+
+@official_name("Six-Hump-Camel")
 def six_hump_camel(params):
     assert len(params) == 2, \
         "Dimensions are incorrect."
@@ -19,6 +27,7 @@ def six_hump_camel(params):
     return first_term + second_term + third_term
 
 
+@official_name("Martin-Gaddy")
 def martin_gaddy(params):
     assert len(params) == 2, \
         "Dimensions are incorrect."
@@ -35,6 +44,7 @@ def martin_gaddy(params):
     return first_term + second_term
 
 
+@official_name("Goldstein-Price")
 def goldstein_price(params):
     assert len(params) == 2, \
         "Dimensions are incorrect."
@@ -51,6 +61,7 @@ def goldstein_price(params):
     return first_term * second_term
 
 
+@official_name("Branin")
 def branin(params):
     assert len(params) == 2, \
         "Dimensions are incorrect."
@@ -67,6 +78,7 @@ def branin(params):
     return first_term ** 2 + second_term + 10
 
 
+@official_name("Easom")
 def easom(params):
     assert len(params) == 2, \
         "Dimensions are incorrect."
@@ -88,12 +100,14 @@ def check_dims(params, lower, upper):
     return True
 
 
+@official_name("Rosenbrock")
 def rosenbrock(params):
     assert check_dims(params, -5, 10)
 
     return sum([100 * (params[i + 1] - params[i] ** 2) ** 2 + (params[i] - 1) ** 2 for i in range(len(params) - 1)])
 
 
+@official_name("Ackley")
 def ackley(params):
     assert check_dims(params, -100, 100)
 
@@ -103,6 +117,7 @@ def ackley(params):
     return first_term - second_term + 20 + math.e
 
 
+@official_name("Griewank")
 def griewank(params):
     assert check_dims(params, -600, 600)
 
@@ -112,36 +127,42 @@ def griewank(params):
     return 1 + first_term + second_term
 
 
+@official_name("Rastrigrin")
 def rastrigrin(params):
     assert check_dims(params, -5.12, 5.12)
 
     return 10 * len(params) + sum([param ** 2 - 10 * math.cos(2 * math.pi * param) for param in params])
 
 
+@official_name("Schwefel")
 def schwefel(params):
     assert check_dims(params, -500, 500)
 
     return 418.9823 * len(params) - sum([param * math.sin(math.sqrt(abs(param))) for param in params])
 
 
+@official_name("Elipse")
 def elipse(params):
     assert check_dims(params, -100, 100)
 
     return sum([(10000 ** ((i - 1) / (len(params) - 1))) * (param ** 2) for i, param in enumerate(params)])
 
 
+@official_name("Cigar")
 def cigar(params):
     assert check_dims(params, -100, 100)
 
     return params[0] ** 2 + sum([10000 * param ** 2 for param in params[1:]])
 
 
+@official_name("Tablet")
 def tablet(params):
     assert check_dims(params, -100, 100)
 
     return 10000 * params[0] ** 2 + sum([param ** 2 for param in params])
 
 
+@official_name("Sphere")
 def sphere(params):
     assert check_dims(params, -100, 100)
 

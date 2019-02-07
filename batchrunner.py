@@ -1,12 +1,12 @@
+import json
+import os
+
+from timeit import default_timer as timer
+
 from ppa import PlantPropagation
 from fireworks import Fireworks
 import helper_tools
 import benchmarks
-
-from timeit import default_timer as timer
-import json
-import os
-import math
 
 
 def load_config(file):

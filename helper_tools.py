@@ -4,8 +4,6 @@ import itertools as it
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as sc
-import powerlaw
-from scipy.optimize import curve_fit
 
 
 def build_path(alg, bench_function, version, dims):
@@ -89,14 +87,12 @@ def func_exp(x, a, b, c):
     return a * np.exp(-b * x) + c
 
 
-def plot_avg(alg, bench_function, version, dim, correction=0):
+def plot_median(alg, bench_function, version, dim, correction=0):
     path = build_path(alg, bench_function, version, dim)
 
     file_list = os.listdir(path)
 
     data = get_data(path, file_list, "curbest")
-
-    N = len(file_list) - 1
 
     all_best_y = np.matrix(list(it.zip_longest(*data, fillvalue=np.nan)))[:10000] - correction
     median_best_y = np.median(all_best_y, axis=1)
@@ -104,28 +100,6 @@ def plot_avg(alg, bench_function, version, dim, correction=0):
     x = range(1, 10001)
 
     color = get_color(alg)
-
-    # print(f'{alg.__name__}, {bench_function.__name__}')
-    # fit = powerlaw.Fit(np.percentile(all_best_y, 50, axis=1))
-    # print(fit.power_law.xmin)
-    # plt.semilogy(x, median_best_y, label=f'{alg.__name__}', color=color)
-    # fit.plot_pdf()
-    # plt.show()
-
-    # X = [i for i in x for _ in range(10)]
-    #
-    #
-    # # y = np.squeeze(all_best_y).ravel().tolist()[0]
-    # y = np.percentile(all_best_y, 50, axis=1)
-    # X = np.array(x, dtype=np.float)
-    #
-    # plt.clf()
-    # target_func = func_powerlaw
-    # popt, pcov = curve_fit(target_func, X, y, p0=(1000, 10, 0), bounds=(0, np.inf), maxfev=2000)
-    # print(popt)
-    # plt.loglog(X, target_func(X, *popt), '--')
-    # plt.loglog(X, y, 'ro')
-    # plt.show()
 
     plt.semilogy(x, median_best_y, label=f'{alg.__name__}', color=color)
     plt.fill_between(x, np.percentile(all_best_y, 0, axis=1), np.percentile(all_best_y, 25, axis=1), alpha=0.2, color=color, linewidth=0.0)
@@ -151,17 +125,13 @@ def wilcoxon_test(alg, bench_function, bench_function_add, version="DEFAULT", di
     data = np.squeeze(data).ravel().tolist()[0]
     data_add = np.squeeze(data_add).ravel().tolist()[0]
 
-    # diff = np.abs(np.array(data) - np.array(data_add))
-    # plt.semilogy(range(10000), diff)
-    # plt.show()
-
     print(sc.wilcoxon(data, data_add))
     print(sc.ranksums(data, data_add))
     print(sc.mannwhitneyu(data, data_add))
 
 
 def plot_end_all_dims(alg, bench_function, version):
-    avgs = []
+    medians = []
     err_lo = []
     err_hi = []
 
@@ -172,18 +142,16 @@ def plot_end_all_dims(alg, bench_function, version):
 
         data = get_data(path, file_list, "curbest")
 
-        # N = len(file_list) - 1
-
         all_best_y = list(it.zip_longest(*data, fillvalue=np.nan))[9999]
-        avg = np.median(all_best_y)
+        median = np.median(all_best_y)
 
-        avgs.append(avg)
+        medians.append(median)
 
-        # We need the absolute errors
-        err_lo.append(avg - np.percentile(all_best_y, 0))
-        err_hi.append(np.percentile(all_best_y, 100) - avg)
+        # We need the absolute errors, not the "height" of the values
+        err_lo.append(median - np.percentile(all_best_y, 0))
+        err_hi.append(np.percentile(all_best_y, 100) - median)
 
-    plt.errorbar(range(2, 101), avgs, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__}', capsize=2, color=get_color(alg))
+    plt.errorbar(range(2, 101), medians, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__}', capsize=2, color=get_color(alg))
 
 
 def plot_times(version="DEFAULT"):
@@ -195,8 +163,12 @@ def plot_times(version="DEFAULT"):
     plt.clf()
 
     for alg in (Fireworks, PlantPropagation):
-        avg = []
+        mean = []
         std = []
+
+        xs = []
+        ys = []
+
         for dims in range(2, 101):
             temp = []
 
@@ -208,10 +180,17 @@ def plot_times(version="DEFAULT"):
                     for row in reader:
                         temp.append(float(row["Time"]))
 
-            avg.append(np.mean(temp))
+            xs += [dims]*len(temp)
+            ys += temp
+
+            mean.append(np.mean(temp))
             std.append(np.std(temp))
 
-        plt.errorbar(range(2, 101), avg, yerr=[std, std], fmt='o', label=f'{alg.__name__}', capsize=2, color=get_color(alg))
+        plt.errorbar(range(2, 101), mean, yerr=[std, std], fmt='o', label=f'{alg.__name__}', capsize=2, color=get_color(alg))
+
+        # Fit the corresponding lines
+        slope, intercept, r_value, p_value, std_err = sc.linregress(xs, ys)
+        print(slope, intercept, r_value, p_value, std_err)
 
     ax = plt.gca()
     ax.set_xlim((2, 101))
@@ -224,7 +203,7 @@ def plot_times(version="DEFAULT"):
 
 
 def plot_end_all_shifts(alg, bench_function, shifts, version, correction=0):
-    avgs = []
+    medians = []
     err_lo = []
     err_hi = []
 
@@ -241,22 +220,22 @@ def plot_end_all_shifts(alg, bench_function, shifts, version, correction=0):
         data = get_data(path, file_list, "curbest")
 
         all_best_y = np.matrix(list(it.zip_longest(*data, fillvalue=np.nan))[9999]) - correction
-        avg = np.percentile(all_best_y, 50)
+        median = np.percentile(all_best_y, 50)
 
-        avgs.append(avg)
+        medians.append(median)
 
         # We need the absolute errors
-        err_lo.append(avg - np.percentile(all_best_y, 0))
-        err_hi.append(np.percentile(all_best_y, 100) - avg)
+        err_lo.append(median - np.percentile(all_best_y, 0))
+        err_hi.append(np.percentile(all_best_y, 100) - median)
 
-    plt.errorbar(shifts, avgs, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__}', capsize=2, color=get_color(alg))
+    plt.errorbar(shifts, medians, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__}', capsize=2, color=get_color(alg))
 
 
 def get_plot_path(bench_function):
     return f'plots/versus/{bench_function.__name__}/'
 
 
-def plot_versus(bench_function, dims, version="DEFAULT", correction=0):
+def plot_versus(bench_function, dims, version="DEFAULT", correction=0, title=False):
     path = get_plot_path(bench_function)
     filename = f'{bench_function.__name__}_{dims}d.png'
 
@@ -265,18 +244,23 @@ def plot_versus(bench_function, dims, version="DEFAULT", correction=0):
     # Clear any existing figure
     plt.clf()
 
-    plot_avg(Fireworks, bench_function, version, dims, correction=correction)
-    plot_avg(PlantPropagation, bench_function, version, dims, correction=correction)
+    plot_median(Fireworks, bench_function, version, dims, correction=correction)
+    plot_median(PlantPropagation, bench_function, version, dims, correction=correction)
 
     plt.xlabel('Evaluation')
-    plt.ylabel('Benchmark score (normalised)')
-    plt.title(f'Benchmark results (N=10, {bench_function.__name__})')
+    plt.ylabel('Objective value (normalised)')
+
+    if title:
+        plt.title(f'Benchmark results (N=10, {bench_function.official_name})')
+    else:
+        plt.title(f'{bench_function.official_name} Function', fontsize=14, fontweight='bold')
+
     plt.legend()
 
     plt.savefig(f'{path}/{filename}', bbox_inches='tight')
 
 
-def plot_versus_dims(bench_function, version="DEFAULT"):
+def plot_versus_dims(bench_function, version="DEFAULT", title=False):
     path = get_plot_path(bench_function)
     filename = f'{bench_function.__name__}_all_dims.png'
 
@@ -292,15 +276,21 @@ def plot_versus_dims(bench_function, version="DEFAULT"):
     ax.set_yscale("log", nonposy='clip')
 
     ax.set_xlim((2, 101))
+
     plt.xlabel('Dimension')
-    plt.ylabel('Benchmark score (normalised)')
-    plt.title(f'Results after 10000 evaluations (N=10, {bench_function.__name__})')
-    plt.legend()
+    plt.ylabel('Objective value (normalised)')
+
+    if title:
+        plt.title(f'Results after 10000 evaluations (N=10, {bench_function.official_name})')
+    else:
+        plt.title(f'{bench_function.official_name} Function (shifted)', fontsize=14, fontweight='bold')
+
+    plt.legend(loc='lower right')
 
     plt.savefig(f'{path}/{filename}', bbox_inches='tight')
 
 
-def plot_versus_shift(bench_function, shifts, version="DEFAULT", correction=0):
+def plot_versus_shift(bench_function, shifts, version="DEFAULT", correction=0, title=False):
     path = get_plot_path(bench_function)
     filename = f'{bench_function.__name__}_shifts.png'
 
@@ -316,15 +306,20 @@ def plot_versus_shift(bench_function, shifts, version="DEFAULT", correction=0):
     ax.set_yscale('log', nonposy='clip')
     ax.set_xscale('symlog', linthreshx=0.1)
 
-    plt.xlabel('Shift')
-    plt.ylabel('Benchmark score (normalized)')
-    plt.title(f'Results after 10000 evaluations (N=10, {bench_function.__name__})')
-    plt.legend()
+    plt.xlabel('Amount of shift')
+    plt.ylabel('Objective value (normalized)')
+
+    if title:
+        plt.title(f'Results after 10000 evaluations (N=10, {bench_function.official_name})')
+    else:
+        plt.title(f'{bench_function.official_name} Function', fontsize=14, fontweight='bold')
+
+    plt.legend(loc='lower right')
 
     plt.savefig(f'{path}/{filename}', bbox_inches='tight')
 
 
-def plot_compare_center_single(bench_function, bench_function_center, version="DEFAULT", correction=0):
+def plot_compare_center_single(bench_function, bench_function_center, version="DEFAULT", correction=0, title=False):
     path = get_plot_path(bench_function)
     filename = f'{bench_function.__name__}_centered.png'
 
@@ -333,18 +328,23 @@ def plot_compare_center_single(bench_function, bench_function_center, version="D
     # Clear any existing figure
     plt.clf()
 
-    plot_avg(Fireworks, bench_function, version, 2, correction=correction)
-    plot_avg(Fireworks, bench_function_center, version, 2, correction=correction)
+    plot_median(Fireworks, bench_function, version, 2, correction=correction)
+    plot_median(Fireworks, bench_function_center, version, 2, correction=correction)
 
-    plot_avg(PlantPropagation, bench_function, version, 2, correction=correction)
-    plot_avg(PlantPropagation, bench_function_center, version, 2, correction=correction)
+    plot_median(PlantPropagation, bench_function, version, 2, correction=correction)
+    plot_median(PlantPropagation, bench_function_center, version, 2, correction=correction)
 
     ax = plt.gca()
     ax.set_yscale('symlog', nonposy='clip', linthreshy=0.0000001)
 
-    plt.xlabel('Shift')
-    plt.ylabel('Benchmark score (normalized)')
-    plt.title(f'Results after 10000 evaluations (N=10, {bench_function.__name__})')
+    plt.xlabel('Amount of shift')
+    plt.ylabel('Objective value (normalized)')
+
+    if title:
+        plt.title(f'Results after 10000 evaluations (N=10, {bench_function.official_name})')
+    else:
+        plt.title(f'{bench_function.official_name} Function', fontsize=14, fontweight='bold')
+
     plt.legend()
 
     plt.savefig(f'{path}/{filename}', bbox_inches='tight')
@@ -367,18 +367,18 @@ if __name__ == '__main__':
     #     plot_compare_center_single(bench_function, bench_function_center, correction=correction)
 
     # Comparison between fwa and ppa, centered and non-centered, and comparison for different shift sizes
-    for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
-        plot_versus(bench_function, 2, correction=correction)
+    # for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
+        # plot_versus(bench_function, 2, correction=correction)
     #
         # bench_function_center, _ = benchmarks.apply_add(bench_function, domain, name='_center')
-        #
+
         # for alg in (Fireworks, PlantPropagation):
         #     wilcoxon_test(alg, bench_function, bench_function_center)
-    #
-    #     plot_versus(bench_function_center, 2, correction=correction)
-    #
-    #     plot_versus_shift(bench_function, (0, 0.1, 1, 10, 100, 1000), correction=correction)
-    # #
+
+        # plot_versus(bench_function_center, 2, correction=correction)
+        #
+        # plot_versus_shift(bench_function, (0, 0.1, 1, 10, 100, 1000), correction=correction)
+
     # # Comparisons between fwa and ppa for both unshifted and shifted benchmarks per dimension
     # for dims in range(2, 101):
     #     print(f'Plotting Nd benchmarks {dims}d/100d...')
@@ -390,21 +390,16 @@ if __name__ == '__main__':
     #         bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
     #
     #         plot_versus(bench_function_add, dims)
-    #
+
     # print("Plotting Nd benchmark commparisons...")
-
-    # Comparisons over all dimensions for shifted and unshifted benchmarks
-    # for bench_function, domain in benchmarks.n_dim_bench_functions().items():
-    #     plot_versus_dims(bench_function)
     #
-    #     print(f'{bench_function.__name__} done')
-    #     domain = [domain for _ in range(100)]
-    #     bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
-    #
-    #     plot_versus_dims(bench_function_add)
+    # # Comparisons over all dimensions for shifted and unshifted benchmarks
+    for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+        # plot_versus_dims(bench_function)
 
-    # TODO: Comparison of N-D shifted vs unshifted?
-    # - Use results at 10k evals of all dims
-    # - Seperate FWA and PPA so we only have 2 lines
+        domain = [domain for _ in range(100)]
+        bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
 
-    # TODO N=10 dynamisch maken, rename avg naar median
+        plot_versus_dims(bench_function_add)
+
+        print(f'{bench_function.__name__} done')
