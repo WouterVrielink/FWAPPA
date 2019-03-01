@@ -2,6 +2,7 @@ import json
 import os
 
 from timeit import default_timer as timer
+import numpy as np
 
 from ppa import PlantPropagation
 from fireworks import Fireworks
@@ -15,7 +16,7 @@ def load_config(file):
     return config
 
 
-def do_run(alg, bench_function, bounds, max_evaluations, reps, verbose=1, version="DEFAULT"):
+def do_run(alg, bench_function, bounds, max_evaluations, reps, verbose=1, version="DEFAULT", prefix=None):
     config = load_config(f'configs/config_{alg.__name__}.json')[version]
 
     if verbose:
@@ -23,8 +24,8 @@ def do_run(alg, bench_function, bounds, max_evaluations, reps, verbose=1, versio
         print(f"Running {alg.__name__} on {bench_function.__name__} in {len(bounds)}D...")
 
     for repetition in range(1, reps + 1):
-        filename_stats = helper_tools.get_name(alg, bench_function, version, len(bounds), repetition)
-        filename_time = helper_tools.get_time_name(alg, bench_function, version, len(bounds))
+        filename_stats = helper_tools.get_name(alg, bench_function, version, len(bounds), repetition, prefix)
+        filename_time = helper_tools.get_time_name(alg, bench_function, version, len(bounds), prefix)
 
         if os.path.isfile(filename_stats):
             print(f"\tRepetition {repetition} / {reps} - exists") if verbose else _
@@ -45,36 +46,65 @@ if __name__ == "__main__":
     evaluations = 10000
     repetitions = 10
 
-    # 2-dimensional
+    # # 2-dimensional
+    # for alg in (PlantPropagation, Fireworks):
+    #     for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
+    #         do_run(alg, bench_function, domain, evaluations, repetitions)
+    #
+    #     # Centered functions...
+    #     for bench_function, center in benchmarks.two_dim_non_centered_bench_functions().items():
+    #         domain, _ = benchmarks.two_dim_bench_functions()[bench_function]
+    #         bench_function, domain = benchmarks.apply_add(bench_function, domain, value=center[0], name='_center')
+    #         do_run(alg, bench_function, domain, evaluations, repetitions)
+    #
+    #         for value in (0.1, 1, 10, 100, 1000):
+    #             bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain, value=value)
+    #
+    #             do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
+    #
+    # # N-dimensional
+    # for dims in range(2, 101):
+    #     for alg in (PlantPropagation, Fireworks):
+    #         for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+    #             domain = [domain for _ in range(dims)]
+    #             do_run(alg, bench_function, domain, evaluations, repetitions)
+    #
+    #             bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+    #
+    #             do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
+    #
+    #         # Centered functions...
+    #         for bench_function, center in benchmarks.n_dim_non_centered_bench_functions().items():
+    #             domain = benchmarks.n_dim_bench_functions()[bench_function]
+    #             domain = [domain for _ in range(dims)]
+    #             bench_function, domain = benchmarks.apply_add(bench_function, domain, value=center[0], name='_center')
+    #
+    #             do_run(alg, bench_function, domain, evaluations, repetitions)
+
+    # 2D 21*21 uniform grid over full domain for all benchmarks
+    grid_number = 21
+
     for alg in (PlantPropagation, Fireworks):
-        for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
-            do_run(alg, bench_function, domain, evaluations, repetitions)
+        for bench_function, domain in benchmarks.n_dim_bench_functions().items():
+            positions = np.linspace(*domain, num=grid_number)
 
-            for value in (0.1, 1, 10, 100, 1000):
-                bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain, value=value)
+            domain = [domain for _ in range(2)]
 
-                do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
+            for x_i, x in enumerate(positions):
+                for y_i, y in enumerate(positions):
+                    bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain, value=(x, y), name=f'_{x_i}_{y_i}')
 
-        # Centered functions...
-        for bench_function, center in benchmarks.two_dim_non_centered_bench_functions().items():
-            domain, _ = benchmarks.two_dim_bench_functions()[bench_function]
-            bench_function, domain = benchmarks.apply_add(bench_function, domain, value=center[0], name='_center')
-            do_run(alg, bench_function, domain, evaluations, repetitions)
+                    # Once for shifted domain and once for non-shifted domain
+                    do_run(alg, bench_function_add, domain_add, evaluations, repetitions, prefix="shifted_domain")
+                    do_run(alg, bench_function_add, domain, evaluations, repetitions, prefix="unshifted_domain")
 
-    # N-dimensional
-    for dims in range(2, 101):
-        for alg in (PlantPropagation, Fireworks):
-            for bench_function, domain in benchmarks.n_dim_bench_functions().items():
-                domain = [domain for _ in range(dims)]
-                do_run(alg, bench_function, domain, evaluations, repetitions)
+        for bench_function, domain in benchmarks.two_dim_bench_functions().items():
+            positions = np.linspace(*domain, num=grid_number)
 
-                bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+            for x_i, x in enumerate(positions):
+                for y_i, y in enumerate(positions):
+                    bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain, value=(x, y), name=f'_{x_i}_{y_i}')
 
-                do_run(alg, bench_function_add, domain_add, evaluations, repetitions)
-
-            # Centered functions...
-            for bench_function, center in benchmarks.n_dim_non_centered_bench_functions().items():
-                domain = benchmarks.n_dim_bench_functions()[bench_function]
-                domain = [domain for _ in range(dims)]
-                bench_function, domain = benchmarks.apply_add(bench_function, domain, value=center[0], name='_center')
-                do_run(alg, bench_function, domain, evaluations, repetitions)
+                    # Once for shifted domain and once for non-shifted domain
+                    do_run(alg, bench_function_add, domain_add, evaluations, repetitions, prefix="shifted_domain")
+                    do_run(alg, bench_function_add, domain, evaluations, repetitions, prefix="unshifted_domain")

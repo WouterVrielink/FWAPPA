@@ -6,16 +6,18 @@ import matplotlib.pyplot as plt
 import scipy.stats as sc
 
 
-def build_path(alg, bench_function, version, dims):
+def build_path(alg, bench_function, version, dims, prefix=None):
+    if prefix:
+        return f'data/{alg.__name__}_{version}/{prefix}/{bench_function.__name__}/{dims}d'
     return f'data/{alg.__name__}_{version}/{bench_function.__name__}/{dims}d'
 
 
-def get_name(alg, bench_function, version, dims, repetition):
-    return f'{build_path(alg, bench_function, version, dims)}/{str(repetition)}.csv'
+def get_name(alg, bench_function, version, dims, repetition, prefix=None):
+    return f'{build_path(alg, bench_function, version, dims, prefix)}/{str(repetition)}.csv'
 
 
-def get_time_name(alg, bench_function, version, dims):
-    return f'{build_path(alg, bench_function, version, dims)}/time.csv'
+def get_time_name(alg, bench_function, version, dims, prefix=None):
+    return f'{build_path(alg, bench_function, version, dims, prefix)}/time.csv'
 
 
 def check_folder(filename):
