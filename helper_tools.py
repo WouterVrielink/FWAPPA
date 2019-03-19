@@ -45,6 +45,7 @@ def save_to_csv(alg, filename):
 
 def save_time(time, total_evals, rep, filename):
     check_folder(filename)
+    # TODO filename to filepath?
 
     # append to end
     with open(filename, mode='a') as file:
@@ -56,11 +57,23 @@ def save_time(time, total_evals, rep, filename):
         writer.writerow([time, total_evals])
 
 
+def save_data(filepath, data, header):
+    check_folder(filepath)
+
+    with open(filepath, mode='w') as file:
+        writer = csv.writer(file)
+
+        writer.writerow(header)
+
+        for i, row in enumerate(data):
+            writer.writerow([i, row])
+
+
 def get_data(path, file_list, column_name):
     data = []
 
     for filename in file_list:
-        if filename == 'time.csv':
+        if filename == 'time.csv' or filename == 'compact.csv':
             continue
 
         repetition = []
@@ -76,17 +89,20 @@ def get_data(path, file_list, column_name):
     return data
 
 
+def compact_data(path):
+    # TODO move file_list to get_data?
+    file_list = os.listdir(path)
+
+    data = get_data(path, file_list, 'curbest')
+
+    new_data = [sub[9999] for sub in data]
+
+    save_data(f'{path}/compact.csv', new_data, ['Repetition', 'Value@10k'])
+
+
 def get_color(alg):
     # Blue if PPA, orange if FWA
     return '#1f77b4' if alg == PlantPropagation else '#ff7f0e'
-
-
-def func_powerlaw(x, a, b, c):
-    return a * x**b + c
-
-
-def func_exp(x, a, b, c):
-    return a * np.exp(-b * x) + c
 
 
 def plot_median(alg, bench_function, version, dim, correction=0):
@@ -139,19 +155,24 @@ def plot_end_all_dims(alg, bench_function, version):
 
     for dim in range(2, 101):
         path = build_path(alg, bench_function, version, dim)
+        filename = 'compact.csv'
+        column_name = 'Value@10k'
 
-        file_list = os.listdir(path)
+        # TODO move this to a function (as well as in get_data)
+        data = []
+        with open(f'{path}/{filename}', mode='r') as file:
+            reader = csv.DictReader(file)
 
-        data = get_data(path, file_list, "curbest")
+            for row in reader:
+                data.append(float(row[column_name]))
 
-        all_best_y = list(it.zip_longest(*data, fillvalue=np.nan))[9999]
-        median = np.median(all_best_y)
+        median = np.median(data)
 
         medians.append(median)
 
         # We need the absolute errors, not the "height" of the values
-        err_lo.append(median - np.percentile(all_best_y, 0))
-        err_hi.append(np.percentile(all_best_y, 100) - median)
+        err_lo.append(median - np.percentile(data, 0))
+        err_hi.append(np.percentile(data, 100) - median)
 
     plt.errorbar(range(2, 101), medians, yerr=[err_lo, err_hi], fmt='o', label=f'{alg.__name__}', capsize=2, color=get_color(alg))
 
@@ -211,7 +232,7 @@ def plot_end_all_shifts(alg, bench_function, shifts, version, correction=0):
 
     for value in shifts:
         if value != 0:
-            bench_function_add, _ = benchmarks.apply_add(bench_function, [(0, 0), (0, 0)], value=value)
+            bench_function_add = benchmarks.apply_add(bench_function, value=value)
         else:
             bench_function_add = bench_function
 
@@ -357,51 +378,85 @@ if __name__ == '__main__':
     from fireworks import Fireworks
     import benchmarks
 
-    # plot_times()
+    bench_fun = [getattr(benchmarks, fun) for fun in dir(benchmarks) if hasattr(getattr(benchmarks, fun), 'is_n_dimensional')]
+    two_dim_fun = [fun for fun in bench_fun if not fun.is_n_dimensional]
+    n_dim_fun = [fun for fun in bench_fun if fun.is_n_dimensional]
 
-    # print("Plotting 2d benchmarks...")
+    non_center_two_dim_fun = [fun for fun in two_dim_fun if (0, 0) not in fun.global_minima]
+    non_center_n_dim_fun = [fun for fun in n_dim_fun if (0) not in fun._global_minima]
 
-    # # Comparison between non-centered function and the centered version
-    # for bench_function in benchmarks.two_dim_non_centered_bench_functions():
-    #     bounds, correction = benchmarks.two_dim_bench_functions()[bench_function]
-    #     bench_function_center, _ = benchmarks.apply_add(bench_function, bounds, name='_center')
+    algorithms = (Fireworks, PlantPropagation)
+
+    # # Compact data from 21x21 grid search
+    # grid_number = 21
+    # for alg in algorithms:
+    #     for bench in bench_fun:
+    #         print(bench.__name__)
+    #         for x_i in range(grid_number):
+    #             for y_i in range(grid_number):
+    #                 compact_data(f'data/{alg.__name__}_DEFAULT/shifted_domain/{bench.__name__}_{x_i}_{y_i}/2d')
+    #                 compact_data(f'data/{alg.__name__}_DEFAULT/unshifted_domain/{bench.__name__}_{x_i}_{y_i}/2d')
+
+    # # Compact data from N-dimensional tests
+    # for alg in algorithms:
+    #     for bench in n_dim_fun:
+    #         print(bench.__name__)
     #
-    #     plot_compare_center_single(bench_function, bench_function_center, correction=correction)
+    #         for dims in range(2, 101):
+    #
+    #             bench.dims = dims
+    #
+    #             bench_add = benchmarks.apply_add(bench)
+    #
+    #             compact_data(build_path(alg, bench, 'DEFAULT', dims))
+    #             compact_data(build_path(alg, bench_add, 'DEFAULT', dims))
+
+    # # Plot computation times
+    # plot_times()
+    #
+    # print("Plotting 2d benchmarks...")
+    #
+    # Comparison between non-centered function and the centered version
+    for bench in non_center_two_dim_fun:
+        bench_center = benchmarks.apply_add(bench, value=bench.global_minima[0], name='_center')
+
+        plot_compare_center_single(bench, bench_center, correction=bench.correction)
+
+    # TODO bench.correction kan naar de functie
 
     # Comparison between fwa and ppa, centered and non-centered, and comparison for different shift sizes
-    # for bench_function, (domain, correction) in benchmarks.two_dim_bench_functions().items():
-        # plot_versus(bench_function, 2, correction=correction)
+    for bench in two_dim_fun:
+        plot_versus(bench, 2, correction=bench.correction)
+
+        bench_center = benchmarks.apply_add(bench, value=bench.global_minima[0], name='_center')
+
+        plot_versus(bench_center, 2, correction=bench_center.correction)
+        plot_versus_shift(bench_center, (0, 0.1, 1, 10, 100, 1000), correction=bench_center.correction)
     #
-        # bench_function_center, _ = benchmarks.apply_add(bench_function, domain, name='_center')
-
-        # for alg in (Fireworks, PlantPropagation):
-        #     wilcoxon_test(alg, bench_function, bench_function_center)
-
-        # plot_versus(bench_function_center, 2, correction=correction)
-        #
-        # plot_versus_shift(bench_function, (0, 0.1, 1, 10, 100, 1000), correction=correction)
-
+    #     # Similarity statistics
+    #     for alg in algorithms:
+    #         wilcoxon_test(alg, bench, bench_center)
+    #
     # # Comparisons between fwa and ppa for both unshifted and shifted benchmarks per dimension
     # for dims in range(2, 101):
     #     print(f'Plotting Nd benchmarks {dims}d/100d...')
     #
-    #     for bench_function, domain in benchmarks.n_dim_bench_functions().items():
-    #         plot_versus(bench_function, dims)
+    #     for bench in n_dim_fun:
+    #         bench.dims = dims
     #
-    #         domain = [domain for _ in range(dims)]
-    #         bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
+    #         plot_versus(bench, dims)
     #
-    #         plot_versus(bench_function_add, dims)
+    #         bench_add = benchmarks.apply_add(bench)
+    #
+    #         plot_versus(bench_add, dims)
 
     # print("Plotting Nd benchmark commparisons...")
+    # Comparisons over all dimensions for shifted and unshifted benchmarks
+    # for bench in n_dim_fun:
+    #     bench.dims = 2
     #
-    # # Comparisons over all dimensions for shifted and unshifted benchmarks
-    for bench_function, domain in benchmarks.n_dim_bench_functions().items():
-        # plot_versus_dims(bench_function)
-
-        domain = [domain for _ in range(100)]
-        bench_function_add, domain_add = benchmarks.apply_add(bench_function, domain)
-
-        plot_versus_dims(bench_function_add)
-
-        print(f'{bench_function.__name__} done')
+    #     plot_versus_dims(bench)
+    #
+    #     bench_add = benchmarks.apply_add(bench)
+    #
+    #     plot_versus_dims(bench_add)
