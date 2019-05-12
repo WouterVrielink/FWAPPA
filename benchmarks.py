@@ -212,7 +212,7 @@ def schwefel(params):
     correction=0,
     global_minima=[(0)])
 def elipse(params):
-    return sum([(10000 ** ((i - 1) / (len(params) - 1))) * (param ** 2) for i, param in enumerate(params)])
+    return sum([(10000 ** (i / (len(params) - 1))) * (param ** 2) for i, param in enumerate(params)])
 
 
 @set_benchmark_properties(
@@ -232,7 +232,7 @@ def cigar(params):
     correction=0,
     global_minima=[(0)])
 def tablet(params):
-    return 10000 * params[0] ** 2 + sum([param ** 2 for param in params])
+    return 10000 * params[0] ** 2 + sum([param ** 2 for param in params[1:]])
 
 
 @set_benchmark_properties(
