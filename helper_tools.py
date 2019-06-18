@@ -398,7 +398,7 @@ def get_plot_path(bench_function):
     return f'plots/versus/{bench_function.__name__}/'
 
 
-def plot_versus(bench_function, dims, version="DEFAULT", correction=0, title=False):
+def plot_versus(bench_function, dims, version="DEFAULT", correction=0, title=False, shifted=''):
     path = get_plot_path(bench_function)
     filename = f'{bench_function.__name__}_{dims}d.png'
 
@@ -416,14 +416,14 @@ def plot_versus(bench_function, dims, version="DEFAULT", correction=0, title=Fal
     if title:
         plt.title(f'Benchmark results (N=20, {bench_function.official_name})')
     else:
-        plt.title(f'{bench_function.official_name} Function', fontsize=14, fontweight='bold')
+        plt.title(f'{bench_function.official_name} Function {shifted}', fontsize=14, fontweight='bold')
 
     plt.legend()
 
     plt.savefig(f'{path}/{filename}', bbox_inches='tight')
 
 
-def plot_versus_dims(bench_function, version="DEFAULT", title=False):
+def plot_versus_dims(bench_function, version="DEFAULT", title=False, shifted=''):
     path = get_plot_path(bench_function)
     filename = f'{bench_function.__name__}_all_dims.png'
 
@@ -446,7 +446,7 @@ def plot_versus_dims(bench_function, version="DEFAULT", title=False):
     if title:
         plt.title(f'Results after 10000 evaluations (N=20, {bench_function.official_name})')
     else:
-        plt.title(f'{bench_function.official_name} Function (shifted)', fontsize=14, fontweight='bold')
+        plt.title(f'{bench_function.official_name} Function {shifted}', fontsize=14, fontweight='bold')
 
     plt.legend(loc='lower right')
 
@@ -482,7 +482,7 @@ def plot_versus_shift(bench_function, shifts, version="DEFAULT", correction=0, t
     plt.savefig(f'{path}/{filename}', bbox_inches='tight')
 
 
-def plot_compare_center_single(bench_function, bench_function_center, version="DEFAULT", correction=0, title=False):
+def plot_compare_center_single(bench_function, bench_function_center, version="DEFAULT", correction=0, title=False, shifted=''):
     path = get_plot_path(bench_function)
     filename = f'{bench_function.__name__}_centered.png'
 
@@ -506,7 +506,7 @@ def plot_compare_center_single(bench_function, bench_function_center, version="D
     if title:
         plt.title(f'Results after 10000 evaluations (N=20, {bench_function.official_name})')
     else:
-        plt.title(f'{bench_function.official_name} Function', fontsize=14, fontweight='bold')
+        plt.title(f'{bench_function.official_name} Function {shifted}', fontsize=14, fontweight='bold')
 
     plt.legend()
 
@@ -538,16 +538,16 @@ if __name__ == '__main__':
     #                 compact_data(f'data/{alg.__name__}_DEFAULT/unshifted_domain/{bench.__name__}_{x_i}_{y_i}/2d')
 
     # Plot the heatmaps for 21x21 grid search
-    for bench in bench_fun:
-        for log in (True, False):
-            plot_grid(algorithms, bench, 'shifted', log=log)
-
-            # The log=True case can fail when values are found below zero
-            try:
-                plot_grid(algorithms, bench, 'unshifted', log=log)
-            except Exception as e:
-                print(e)
-                continue
+    # for bench in bench_fun:
+    #     for log in (True, False):
+    #         plot_grid(algorithms, bench, 'shifted', log=log)
+    #
+    #         # The log=True case can fail when values are found below zero
+    #         try:
+    #             plot_grid(algorithms, bench, 'unshifted', log=log)
+    #         except Exception as e:
+    #             print(e)
+    #             continue
 
     # # Compact data from N-dimensional tests
     # for alg in algorithms:
@@ -564,7 +564,7 @@ if __name__ == '__main__':
     #             compact_data(build_path(alg, bench_add, 'DEFAULT', dims))
 
     # # Plot computation times
-    plot_times(n_dim_fun)
+    # plot_times(n_dim_fun)
     #
     # print("Plotting 2d benchmarks...")
     #
@@ -572,22 +572,22 @@ if __name__ == '__main__':
     # for bench in non_center_two_dim_fun:
     #     bench_center = benchmarks.apply_add(bench, value=bench.global_minima[0], name='_center')
     #
-    #     plot_compare_center_single(bench, bench_center, correction=bench.correction)
+    #     plot_compare_center_single(bench, bench_center, correction=bench.correction, shifted='(centered)')
 
     # TODO bench.correction kan naar de functie
 
     # Comparison between fwa and ppa, centered and non-centered, and comparison for different shift sizes
-    # for bench in two_dim_fun:
-    #     plot_versus(bench, 2, correction=bench.correction)
-    #
-    #     bench_center = benchmarks.apply_add(bench, value=bench.global_minima[0], name='_center')
-    #
-    #     plot_versus(bench_center, 2, correction=bench_center.correction)
-    #     plot_versus_shift(bench_center, (0, 0.1, 1, 10, 100, 1000), correction=bench_center.correction)
-    #
-    #     # Similarity statistics
-    #     for alg in algorithms:
-    #         wilcoxon_test(alg, bench, bench_center)
+    for bench in two_dim_fun:
+        plot_versus(bench, 2, correction=bench.correction)
+
+        bench_center = benchmarks.apply_add(bench, value=bench.global_minima[0], name='_center')
+
+        plot_versus(bench_center, 2, correction=bench_center.correction, shifted='(centered)')
+        plot_versus_shift(bench_center, (0, 0.1, 1, 10, 100, 1000), correction=bench_center.correction)
+
+        # Similarity statistics
+        for alg in algorithms:
+            wilcoxon_test(alg, bench, bench_center)
 
     # Comparisons between fwa and ppa for both unshifted and shifted benchmarks per dimension
     # for dims in range(2, 101):
@@ -600,15 +600,17 @@ if __name__ == '__main__':
     #
     #         bench_add = benchmarks.apply_add(bench)
     #
-    #         plot_versus(bench_add, dims)
+    #         plot_versus(bench_add, dims, shifted='(shifted)')
 
     # print("Plotting Nd benchmark comparisons...")
-    # # Comparisons over all dimensions for shifted and unshifted benchmarks
+    # Comparisons over all dimensions for shifted and unshifted benchmarks
     # for bench in n_dim_fun:
     #     bench.dims = 2
+    #
+    #     print(bench.official_name)
     #
     #     plot_versus_dims(bench)
     #
     #     bench_add = benchmarks.apply_add(bench)
     #
-    #     plot_versus_dims(bench_add)
+    #     plot_versus_dims(bench_add, shifted='(shifted)')
