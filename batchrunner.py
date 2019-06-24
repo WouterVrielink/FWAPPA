@@ -1,3 +1,26 @@
+"""
+This file holds all the code required to run all experiments.
+
+Running this file will result in a /data folder with folders organized as
+follows:
+data/<algorithm>_<configuration>/<benchmark variant>/<dimension>/
+
+Two types of file will be made:
+<run number>.csv
+times.csv
+
+The first file will contain the value obtained, the current best, and the
+generation number of the algorithm that was applied to the benchmark for search
+evaluation that is made.
+
+The second file will contain the time each of the runs took. Keep in mind that
+although computing time is registered, it does not account for any background
+tasks that a system runs and is therefore very noisy.
+
+Do not worry about interrupting the program, it will restart where it was based
+on the output files that are in the /data folder.
+"""
+
 import json
 import os
 
@@ -11,31 +34,44 @@ import benchmarks
 
 
 def load_config(file):
+    """
+    Loads a config file (JSON) into a dictionary.
+
+    args:
+        file (str): the file that should be loaded
+    """
     with open(file, 'r') as f:
         config = json.load(f)
     return config
 
 
-def do_run(alg, bench_function, max_evaluations, reps, bounds=None, dims=2, prefix=None, version="DEFAULT", verbose=1):
+def do_run(alg, bench, max_evaluations, reps, bounds=None, dims=2, prefix=None, version="DEFAULT", verbose=1):
+    """
+    Performs a run with the given parameters. Automatically saves the results in
+    the proper folders.
+
+    args:
+        alg: the algorithm object
+    """
     if not bounds:
-        bounds = bench_function.bounds
+        bounds = bench.bounds
 
     config = load_config(f'configs/config_{alg.__name__}.json')[version]
 
     if verbose:
         print("--------------------------------------")
-        print(f"Running {alg.__name__} on {bench_function.__name__} in {dims}D...")
+        print(f"Running {alg.__name__} on {bench.__name__} in {dims}D...")
 
-    filename_time = helper_tools.get_time_name(alg, bench_function, version, dims, prefix)
+    filename_time = helper_tools.get_time_name(alg, bench, version, dims, prefix)
 
     for repetition in range(1, reps + 1):
-        filename_stats = helper_tools.get_name(alg, bench_function, version, dims, repetition, prefix)
+        filename_stats = helper_tools.get_name(alg, bench, version, dims, repetition, prefix)
 
         if os.path.isfile(filename_stats):
             print(f"\tRepetition {repetition} / {reps} - exists") if verbose else _
             continue
 
-        alg_instance = alg(bench_function, bounds, max_evaluations, *list(config.values()))
+        alg_instance = alg(bench, bounds, max_evaluations, *list(config.values()))
 
         print(f"\tRepetition {repetition} / {reps} - running") if verbose else _
         start = timer()
@@ -52,11 +88,12 @@ if __name__ == "__main__":
     repetitions = 10
     maxDims = 100
 
+    # Prepare globals
     bench_fun = [getattr(benchmarks, fun) for fun in dir(benchmarks) if hasattr(getattr(benchmarks, fun), 'is_n_dimensional')]
     two_dim_fun = [fun for fun in bench_fun if not fun.is_n_dimensional]
     n_dim_fun = [fun for fun in bench_fun if fun.is_n_dimensional]
 
-    non_center_two_dim_fun = [fun for fun in two_dim_fun if (0, 0) not in fun._global_minima]
+    non_center_two_dim_fun = [fun for fun in two_dim_fun if (0, 0) not in fun.global_minima]
     non_center_n_dim_fun = [fun for fun in n_dim_fun if (0) not in fun._global_minima]
 
     algorithms = (Fireworks, PlantPropagation)
