@@ -1,3 +1,16 @@
+"""
+This file holds all the code required to perform statistics and generate graphs.
+
+Running this file will result in a /plots folder, the printed results of the statistical tests, and compacted files that should speed up further creation of graphs. This folder contains three more folders with each of three types of graphs:
+grid: contains all the heatmap graphs
+times: contains the elapsed time graphs
+versus: contains all the graphs that compare the algorithms directly
+
+The versus folder is organized with folders named: <algorithm>_<configuration>. In these folders the names of the images indicate the specifics.
+
+Note that the code for compacting the data does not need to be run more than once. The easiest way to do this currently is by commenting the code that is responsible for it.
+"""
+
 import csv
 import os
 import math
@@ -39,7 +52,7 @@ def get_name(alg, bench, version, dims, rep, prefix=None):
         bench: the benchmark function object
         version (str): the name of the parameter-set
         dims (int): the amount of dimensions used in the test
-        rep (int): the "how many-th" time this bench was ran
+        rep (int): the "how many-th" time this bench was run
         prefix (str): reserved for unusual tests that require a different dir
 
     returns:
@@ -113,7 +126,7 @@ def save_time(time, total_evals, rep, filename):
         time (float): time taken in seconds
         total_evals (int): the total number of evaluations that was performed in
                 this time
-        rep (int): the "how many-th" time this bench was ran
+        rep (int): the "how many-th" time this bench was run
         filename (str): the complete filepath + filename of the target
     """
     # Check if filepath is accessible

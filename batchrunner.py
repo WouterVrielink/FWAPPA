@@ -39,19 +39,30 @@ def load_config(file):
 
     args:
         file (str): the file that should be loaded
+
+    returns:
+        A config dictionary.
     """
     with open(file, 'r') as f:
         config = json.load(f)
     return config
 
 
-def do_run(alg, bench, max_evaluations, reps, bounds=None, dims=2, prefix=None, version="DEFAULT", verbose=1):
+def do_run(alg, bench, max_evaluations, reps, bounds=None, dims=2, prefix=None, version="DEFAULT", verbose=True):
     """
     Performs a run with the given parameters. Automatically saves the results in
     the proper folders.
 
     args:
         alg: the algorithm object
+        bench: the benchmark function object
+        max_evaluations (int): the maximum amount of evaluations to run
+        reps (int): the amount of times an experiment should be repeated
+        bounds: a tuple containing the bounds to set for the bench
+        dims (int): the amount of dimensions in the bench
+        prefix (str): an optional prefix for the experiment name
+        version (str): the name of the parameter-set
+        verbose (bool): whether the function should be verbose
     """
     if not bounds:
         bounds = bench.bounds
