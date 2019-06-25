@@ -8,7 +8,7 @@ from point import Point
 
 class Fireworks(object):
     """
-    Python replication of the algorithm described in https://www.researchgate.net/profile/Ying_Tan5/publication/220704568_Fireworks_Algorithm_for_Optimization/links/00b7d5281fc26a092a000000.pdf
+    Python replication of the Fireworks algorithm as described in https://www.researchgate.net/profile/Ying_Tan5/publication/220704568_Fireworks_Algorithm_for_Optimization/links/00b7d5281fc26a092a000000.pdf
     """
 
     def __init__(self, bench, bounds, max_evaluations, N, m, m_roof, a, b, max_amp):
@@ -16,9 +16,9 @@ class Fireworks(object):
         args:
             bench: the benchmark function object
             bounds: the boundaries of the bench
-            max_evaluations (int): the masimum number of evaluations to run
+            max_evaluations (int): the maximum number of evaluations to run
             N (int): the population size
-            m (int): the maximum number of sparks
+            m (int): the maximum number of sparks per individual
             m_roof (int): the maximum number of gaussian sparks
             a (int): the lower bound on the number of sparks
             b (int): the upper bound on the number of sparks
