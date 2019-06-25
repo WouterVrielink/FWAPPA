@@ -24,13 +24,10 @@ on the output files that are in the /data folder.
 import json
 import os
 
-from timeit import default_timer as timer
 import numpy as np
+from timeit import default_timer as timer
 
-from ppa import PlantPropagation
-from fireworks import Fireworks
 import helper_tools
-import benchmarks
 
 
 def load_config(file):
@@ -95,6 +92,12 @@ def do_run(alg, bench, max_evaluations, reps, bounds=None, dims=2, prefix=None, 
 
 
 if __name__ == "__main__":
+    import Benchmark
+    import benchmark_functions as benchmarks
+
+    from ppa import PlantPropagation
+    from fireworks import Fireworks
+
     evaluations = 10000
     repetitions = 10
     maxDims = 100
@@ -115,12 +118,12 @@ if __name__ == "__main__":
             do_run(alg, bench, evaluations, repetitions)
 
         for bench in non_center_two_dim_fun:
-            bench_center = benchmarks.apply_add(bench, value=bench.global_minima[0], name='_center')
+            bench_center = Benchmark.apply_add(bench, value=bench.global_minima[0], name='_center')
 
             do_run(alg, bench_center, evaluations, repetitions)
 
             for value in (0.1, 1, 10, 100, 1000):
-                bench_add = benchmarks.apply_add(bench_center, value=value)
+                bench_add = Benchmark.apply_add(bench_center, value=value)
 
                 do_run(alg, bench_add, evaluations, repetitions)
 
@@ -132,14 +135,14 @@ if __name__ == "__main__":
 
                 do_run(alg, bench, evaluations, repetitions, dims=dims)
 
-                bench_add = benchmarks.apply_add(bench)
+                bench_add = Benchmark.apply_add(bench)
 
                 do_run(alg, bench_add, evaluations, repetitions, dims=dims)
 
             for bench in non_center_n_dim_fun:
                 bench.dims = dims
 
-                bench_center = benchmarks.apply_add(bench, value=bench.global_minima[0], name='_center')
+                bench_center = Benchmark.apply_add(bench, value=bench.global_minima[0], name='_center')
 
                 do_run(alg, bench_center, evaluations, repetitions, dims=dims)
 
@@ -155,7 +158,7 @@ if __name__ == "__main__":
 
             for x_i, x in enumerate(xpositions):
                 for y_i, y in enumerate(ypositions):
-                    bench_add = benchmarks.apply_add(bench, value=(x, y), name=f'_{x_i}_{y_i}')
+                    bench_add = Benchmark.apply_add(bench, value=(x, y), name=f'_{x_i}_{y_i}')
 
                     # Once for shifted domain and once for non-shifted domain
                     do_run(alg, bench_add, evaluations, repetitions, prefix='shifted_domain')
