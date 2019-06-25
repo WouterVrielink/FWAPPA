@@ -9,6 +9,7 @@ __pycache__/
 # Data folder
 data/
 plots/
+papers/
 
 # Distribution / packaging
 .Python
