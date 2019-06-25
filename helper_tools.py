@@ -22,6 +22,8 @@ import seaborn as sns
 import pandas as pd
 from matplotlib.colors import LogNorm
 
+from plantpropagation import PlantPropagation
+from fireworks import Fireworks
 
 def build_path(alg, bench, version, dims, prefix=None):
     """
@@ -578,7 +580,7 @@ def plot_end_all_shifts(alg, bench, shifts, version, correction=0):
 
     for value in shifts:
         if value != 0:
-            bench_add = Benchmark.apply_add(bench, value=value)
+            bench_add = benchmark.apply_add(bench, value=value)
         else:
             bench_add = bench
 
@@ -764,11 +766,8 @@ def plot_compare_center_single(bench, bench_center, version="DEFAULT", correctio
 
 
 if __name__ == '__main__':
-    import Benchmark
+    import benchmark
     import benchmark_functions as benchmarks
-
-    from ppa import PlantPropagation
-    from fireworks import Fireworks
 
     # Prepare globals
     bench_fun = [getattr(benchmarks, fun) for fun in dir(benchmarks) if hasattr(getattr(benchmarks, fun), 'is_n_dimensional')]
@@ -785,7 +784,7 @@ if __name__ == '__main__':
 
     # Comparison between non-centered function and the centered version
     for bench in non_center_two_dim_fun:
-        bench_center = Benchmark.apply_add(bench, value=bench.global_minima[0], name='_center')
+        bench_center = benchmark.apply_add(bench, value=bench.global_minima[0], name='_center')
 
         plot_compare_center_single(bench, bench_center, correction=bench.correction, shifted='(centered)')
 
@@ -793,7 +792,7 @@ if __name__ == '__main__':
     for bench in two_dim_fun:
         plot_versus(bench, 2, correction=bench.correction)
 
-        bench_center = Benchmark.apply_add(bench, value=bench.global_minima[0], name='_center')
+        bench_center = benchmark.apply_add(bench, value=bench.global_minima[0], name='_center')
 
         plot_versus(bench_center, 2, correction=bench_center.correction, shifted='(centered)')
         plot_versus_shift(bench_center, (0, 0.1, 1, 10, 100, 1000), correction=bench_center.correction)
@@ -812,7 +811,7 @@ if __name__ == '__main__':
 
                 bench.dims = dims
 
-                bench_add = Benchmark.apply_add(bench)
+                bench_add = benchmark.apply_add(bench)
 
                 compact_data(build_path(alg, bench, 'DEFAULT', dims))
                 compact_data(build_path(alg, bench_add, 'DEFAULT', dims))
@@ -829,7 +828,7 @@ if __name__ == '__main__':
 
             plot_versus(bench, dims)
 
-            bench_add = Benchmark.apply_add(bench)
+            bench_add = benchmark.apply_add(bench)
 
             plot_versus(bench_add, dims, shifted='(shifted)')
 
@@ -842,7 +841,7 @@ if __name__ == '__main__':
 
         plot_versus_dims(bench)
 
-        bench_add = Benchmark.apply_add(bench)
+        bench_add = benchmark.apply_add(bench)
 
         plot_versus_dims(bench_add, shifted='(shifted)')
 

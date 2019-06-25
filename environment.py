@@ -2,6 +2,7 @@ import math
 import numpy as np
 from point import Point
 
+
 class Environment(object):
     """docstring for Environment."""
     def __init__(self, bounds, function):

@@ -7,7 +7,7 @@ In total, there are five 2-D functions, and nine N-D functions (N => 2).
 
 import math
 import numpy as np
-from Benchmark import set_benchmark_properties
+from benchmark import set_benchmark_properties
 
 
 @set_benchmark_properties(
