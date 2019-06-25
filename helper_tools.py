@@ -25,6 +25,7 @@ from matplotlib.colors import LogNorm
 from plantpropagation import PlantPropagation
 from fireworks import Fireworks
 
+
 def build_path(alg, bench, version, dims, prefix=None):
     """
     Builds a path string with given parameters.
