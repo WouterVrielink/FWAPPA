@@ -61,7 +61,7 @@ def get_name(alg, bench, version, dims, rep, prefix=None):
     returns:
         A path string with a #.csv filename.
     """
-    return f'{build_path(alg, bench, version, dims, prefix)}/{str(rep)}.csv'
+    return f'../{build_path(alg, bench, version, dims, prefix)}/{str(rep)}.csv'
 
 
 def get_time_name(alg, bench, version, dims, prefix=None):
@@ -78,7 +78,7 @@ def get_time_name(alg, bench, version, dims, prefix=None):
     returns:
         A path string with time.csv.
     """
-    return f'{build_path(alg, bench, version, dims, prefix)}/time.csv'
+    return f'../{build_path(alg, bench, version, dims, prefix)}/time.csv'
 
 
 def check_folder(filepath):
@@ -365,7 +365,7 @@ def plot_grid(algs, bench, domain, grid_size=21, log=True):
         log (bool): whether the scale should be logarithmic
     """
 
-    out_path = f'plots/grid/{domain}_domain/'
+    out_path = f'../plots/grid/{domain}_domain/'
 
     if log:
         out_filename = f'grid_{domain}_{bench.__name__}_log.png'
@@ -387,7 +387,7 @@ def plot_grid(algs, bench, domain, grid_size=21, log=True):
             data_row = []
 
             for x_i in range(grid_size):
-                path = f'data/{alg.__name__}_DEFAULT/{domain}_domain/{bench.__name__}_{x_i}_{y_i}/2d'
+                path = f'../data/{alg.__name__}_DEFAULT/{domain}_domain/{bench.__name__}_{x_i}_{y_i}/2d'
                 filename = 'compact.csv'
                 column_name = 'Value@10k'
 
@@ -512,7 +512,7 @@ def plot_times(benchmarks, version="DEFAULT"):
         benchmarks: a list of benchmark function objects
         version (str): the name of the parameter-set
     """
-    fpath = 'plots/times/'
+    fpath = '../plots/times/'
     filename = f'times.png'
 
     # Check if filepath is accessible
@@ -612,7 +612,7 @@ def get_plot_path(bench):
     returns:
         A path-string
     """
-    return f'plots/versus/{bench.__name__}/'
+    return f'../plots/versus/{bench.__name__}/'
 
 
 def plot_versus(bench, dims, version="DEFAULT", correction=0, shifted=''):
@@ -855,8 +855,8 @@ if __name__ == '__main__':
 
             for x_i in range(grid_number):
                 for y_i in range(grid_number):
-                    compact_data(f'data/{alg.__name__}_DEFAULT/shifted_domain/{bench.__name__}_{x_i}_{y_i}/2d')
-                    compact_data(f'data/{alg.__name__}_DEFAULT/unshifted_domain/{bench.__name__}_{x_i}_{y_i}/2d')
+                    compact_data(f'../data/{alg.__name__}_DEFAULT/shifted_domain/{bench.__name__}_{x_i}_{y_i}/2d')
+                    compact_data(f'../data/{alg.__name__}_DEFAULT/unshifted_domain/{bench.__name__}_{x_i}_{y_i}/2d')
 
     # Plot the heatmaps for 21x21 grid search
     for bench in bench_fun:

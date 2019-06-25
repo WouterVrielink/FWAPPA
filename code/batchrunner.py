@@ -27,7 +27,7 @@ import os
 import numpy as np
 from timeit import default_timer as timer
 
-import code.helper_tools
+import helper_tools
 
 
 def load_config(file):
@@ -64,7 +64,7 @@ def do_run(alg, bench, max_evaluations, reps, bounds=None, dims=2, prefix=None, 
     if not bounds:
         bounds = bench.bounds
 
-    config = load_config(f'configs/config_{alg.__name__}.json')[version]
+    config = load_config(f'../configs/config_{alg.__name__}.json')[version]
 
     if verbose:
         print("--------------------------------------")
