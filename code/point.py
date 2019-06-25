@@ -1,21 +1,40 @@
 class Point(object):
-    """docstring for Point."""
+    """
+    Provides a coordinate class that can calculate distances and determine if
+    it was already once evaluated.
+    """
     def __init__(self, pos, env):
+        """
+        args:
+            pos: a list of coordinates
+            env: the environment the point resides in
+        """
         self.pos = pos
         self.env = env
 
-        self.fitness_calculated = False
         self._fitness = None
 
     @property
     def fitness(self):
-        if not self.fitness_calculated:
+        """
+        Calculates the fitness of the individual if it was not already
+        calculated.
+
+        returns:
+            The fitness of an individual
+        """
+        if self._fitness is None:
             self._fitness = self.env.calculate_fitness(self.pos)
-            self.fitness_calculated = True
         return self._fitness
 
     def euclidean_distance(self, point):
-        return sum([abs(self.pos[i] - point.pos[i]) for i in range(self.env.d)])
+        """
+        Calculates the difference between this point and another.
 
-    def euclidean_distance_population(self, population):
-        return sum([self.euclidean_distance(point) for point in population])
+        args:
+            point: a point object
+
+        returns:
+            The euclidean distance between the two points.
+        """
+        return sum([abs(self.pos[i] - point.pos[i]) for i in range(self.env.d)])

@@ -120,6 +120,9 @@ class Fireworks(object):
 
         return sparks
 
+    def calculate_distance_population(self, population):
+        return [sum([firework.euclidean_distance(point) for point in population]) for firework in population]
+
     def start(self):
         while self.env.evaluation_number < self.max_evaluations:
             # Sort the population Ascending
@@ -129,7 +132,7 @@ class Fireworks(object):
             if len(self.population) > self.N:
                 new_pop = [self.population[0]]
 
-                dist = [firework.euclidean_distance_population(self.population) for firework in self.population[1:]]
+                dist = self.calculate_distance_population(self.population[1:])
                 probabilities = dist / sum(dist)
 
                 new_pop += list(np.random.choice(self.population[1:], self.N - 1, p=probabilities))
