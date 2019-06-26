@@ -42,8 +42,8 @@ def build_path(alg, bench, version, dims, prefix=None):
     """
 
     if prefix:
-        return f'data/{alg.__name__}_{version}/{prefix}/{bench.__name__}/{dims}d'
-    return f'data/{alg.__name__}_{version}/{bench.__name__}/{dims}d'
+        return f'../data/{alg.__name__}_{version}/{prefix}/{bench.__name__}/{dims}d'
+    return f'../data/{alg.__name__}_{version}/{bench.__name__}/{dims}d'
 
 
 def get_name(alg, bench, version, dims, rep, prefix=None):
@@ -61,7 +61,7 @@ def get_name(alg, bench, version, dims, rep, prefix=None):
     returns:
         A path string with a #.csv filename.
     """
-    return f'../{build_path(alg, bench, version, dims, prefix)}/{str(rep)}.csv'
+    return f'{build_path(alg, bench, version, dims, prefix)}/{str(rep)}.csv'
 
 
 def get_time_name(alg, bench, version, dims, prefix=None):
@@ -78,7 +78,7 @@ def get_time_name(alg, bench, version, dims, prefix=None):
     returns:
         A path string with time.csv.
     """
-    return f'../{build_path(alg, bench, version, dims, prefix)}/time.csv'
+    return f'{build_path(alg, bench, version, dims, prefix)}/time.csv'
 
 
 def check_folder(filepath):
@@ -399,6 +399,7 @@ def plot_grid(algs, bench, domain, grid_size=21, log=True):
             data.append(data_row)
 
         data = np.matrix(data)
+        alg_data[alg.__name__] = data
 
     flat_data_FWA = alg_data['Fireworks'].A1
     flat_data_PPA = alg_data['PlantPropagation'].A1
