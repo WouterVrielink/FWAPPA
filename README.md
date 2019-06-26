@@ -58,7 +58,7 @@ See also the list of [contributors](https://github.com/WouterVrielink/FWAPPA/gra
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](https://github.com/WouterVrielink/FWAPPA/LICENSE.md) file for details
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](https://github.com/WouterVrielink/FWAPPA/blob/master/LICENSE) file for details
 
 ## Acknowledgments
 
