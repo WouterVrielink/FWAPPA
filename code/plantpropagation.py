@@ -11,7 +11,7 @@ class PlantPropagation(object):
     Python replication of the Plant Propagation algorithm as described in http://repository.essex.ac.uk/9974/1/paper.pdf
     """
 
-    def __init__(self, bench, bounds, max_evaluations, m, max_runners, tanh_mod=1):
+    def __init__(self, bench, bounds, max_evaluations, m, max_runners, tanh_mod=1, tanh_adapt=False):
         """
         args:
             bench: the benchmark function object
@@ -34,6 +34,7 @@ class PlantPropagation(object):
         self.max_runners = max_runners
 
         self.tanh_mod = tanh_mod
+        self.tanh_adapt = tanh_adapt
 
     def __repr__(self):
         return type(self).__name__ + \
@@ -94,6 +95,22 @@ class PlantPropagation(object):
 
         return runner
 
+    def map_fitness(self, fitness):
+        """
+        Maps the fitness from [0, 1] to (0, 1).
+
+        This makes sure that children can never be on the exact same spot as the
+        parent. Higher tanh_mod values will result in children that are
+        generally closer, while values below 1 will result in children that are
+        relatively further away.
+
+        returns:
+            A fitness value.
+        """
+        if self.tanh_adapt:
+            self.tanh_mod = self.env.evaluation_number // 1000
+        return (math.tanh(4 * self.tanh_mod * self.convert_fitness(fitness) - 2 * self.tanh_mod) + 1)
+
     def get_runners(self, plant):
         """
         Create all the children for this plant.
@@ -104,7 +121,7 @@ class PlantPropagation(object):
         runners = []
 
         if self.z_max - self.z_min > 0:
-            corr_fitness = 0.5 * (math.tanh(4 * self.tanh_mod * self.convert_fitness(plant.fitness) - 2 * self.tanh_mod) + 1)
+            corr_fitness = 0.5 * self.map_fitness(plant.fitness)
         else:
             corr_fitness = 0.5
 

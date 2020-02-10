@@ -1,6 +1,6 @@
 # Fireworks versus Plant Propagation
 
-This repo holds the codebase the ['Fireworks Algorithm versus Plant Propagation Algorithm' studies](TODO). From the abstract:
+This repo holds the codebase the ['Fireworks Algorithm versus Plant Propagation Algorithm' studies](http://www.scitepress.org/DigitalLibrary/Link.aspx?doi=10.5220/0008169401010112). From the abstract:
 
 _In recent years, the field of Evolutionary Algorithms has seen a tremendous increase in novel methods. While these algorithmic innovations often show excellent results on relatively limited domains, they are less often rigorously cross-tested or compared to other state-of-the-art developments. Two of these methods, quite similar in their appearance, are the Fireworks Algorithm and Plant Propagation Algorithm._
 
@@ -58,7 +58,7 @@ See also the list of [contributors](https://github.com/WouterVrielink/FWAPPA/gra
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](https://github.com/WouterVrielink/FWAPPA/blob/master/LICENSE) file for details
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](https://github.com/WouterVrielink/FWAPPA/blob/master/LICENSE) file for details
 
 ## Acknowledgments
 

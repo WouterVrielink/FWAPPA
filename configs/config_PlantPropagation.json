@@ -3,9 +3,9 @@
     "m": 30,
     "max_runners": 5
   },
-  "TANH": {
+  "TANH_ADAPT": {
     "m": 30,
-      "max_runners": 5,
-      "tanh_mod": 2
+    "max_runners": 5,
+    "tanh_adapt": 1
   }
 }

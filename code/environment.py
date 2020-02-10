@@ -65,7 +65,7 @@ class Environment(object):
             The value of the bench on that position (float).
         """
         self.evaluation_number += 1
-        fitness = self.function(pos)
+        fitness = self.bench(pos)
         self.evaluation_statistics.append(fitness)
 
         if fitness < self.cur_best:
