@@ -108,7 +108,7 @@ class PlantPropagation(object):
             A fitness value.
         """
         if self.tanh_adapt:
-            self.tanh_mod = self.env.evaluation_number // 1000 + 1
+            self.tanh_mod = self.env.evaluation_number / 1000 + 1
         return (math.tanh(4 * self.tanh_mod * self.convert_fitness(fitness) - 2 * self.tanh_mod) + 1)
 
     def get_runners(self, plant):

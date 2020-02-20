@@ -79,7 +79,7 @@ def do_run(alg, bench, max_evaluations, reps, bounds=None, dims=2, prefix=None, 
             print(f"\tRepetition {repetition} / {reps} - exists") if verbose else _
             continue
 
-        alg_instance = alg(bench, bounds, max_evaluations, *config)
+        alg_instance = alg(bench, bounds, max_evaluations, **config)
 
         print(f"\tRepetition {repetition} / {reps} - running") if verbose else _
         start = timer()
